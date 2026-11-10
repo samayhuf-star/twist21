@@ -40,6 +40,11 @@
         }
       ]
     ],
-    "owner": "krosz"
+    "owner": "krosz",
+    "extra": {
+      "eas": {
+        "projectId": "e6c67df9-7554-4765-94ef-9a3847b58e39"
+      }
+    }
   }
 }
