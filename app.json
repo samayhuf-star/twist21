@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Twist 21",
+    "slug": "twist21",
+    "scheme": "twist21",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#100e26",
+    "ios": {
+      "bundleIdentifier": "com.samay.twist21",
+      "supportsTablet": false,
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.samay.twist21",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#100e26",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#100e26",
+          "imageWidth": 200
+        }
+      ]
+    ],
+    "owner": "krosz"
+  }
+}
