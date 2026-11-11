@@ -11,6 +11,8 @@ import {
   hasPremium,
   initPurchases,
   onCustomerInfo,
+  presentCustomerCenter,
+  presentPaywall,
   purchase,
   restore,
 } from './src/purchases';
@@ -50,6 +52,24 @@ function Game() {
     }
     if (msg.type === 'link' && typeof msg.url === 'string' && msg.url.startsWith('https://')) {
       Linking.openURL(msg.url);
+    } else if (msg.type === 'paywall') {
+      if (!initPurchases()) {
+        Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
+        return;
+      }
+      try {
+        if (await presentPaywall()) pushPremium(true);
+      } catch (err: any) {
+        Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
+      }
+    } else if (msg.type === 'manage') {
+      if (!initPurchases()) return;
+      try {
+        await presentCustomerCenter();
+        pushPremium(hasPremium(await getCustomerInfo()));
+      } catch {
+        /* Customer Center unavailable: nothing to do */
+      }
     } else if (msg.type === 'purchase') {
       if (!initPurchases()) {
         Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');

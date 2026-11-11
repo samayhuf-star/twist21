@@ -352,7 +352,10 @@ a.btn { text-decoration: none; display: inline-block; }
   }
   function allowMatch() {
     if (S.premium) return true;
-    if (matchesToday() >= FREE_MATCHES) { S.paywall = { reason: 'limit' }; render(); return false; }
+    if (matchesToday() >= FREE_MATCHES) {
+      if (inApp()) { toApp('paywall', 'limit'); return false; }
+      S.paywall = { reason: 'limit' }; render(); return false;
+    }
     bumpMatches();
     return true;
   }
@@ -913,7 +916,7 @@ a.btn { text-decoration: none; display: inline-block; }
       ring.classList.remove('twist'); void ring.offsetWidth; ring.classList.add('twist');
     }
     var pb0 = $('#premBtn');
-    pb0.textContent = S.premium ? 'Premium unlocked' : 'Go Premium';
+    pb0.textContent = S.premium ? (inApp() ? 'Manage Premium' : 'Premium unlocked') : 'Go Premium';
     pb0.disabled = S.premium;
     if (overlay !== S.lastOverlay) { $('#overlay').innerHTML = overlay; S.lastOverlay = overlay; }
     var key = S.paywall ? 'paywall' : S.rules ? 'rules' : S.phase;
@@ -944,7 +947,10 @@ a.btn { text-decoration: none; display: inline-block; }
     else if (a === 'start') { if (allowMatch()) beginRound(); }
     else if (a === 'next') nextRound();
     else if (a === 'newmatch') { if (allowMatch()) { initMatch(); beginRound(); } }
-    else if (a === 'paywall') { S.paywall = { reason: 'upsell' }; S.codeMsg = ''; render(); }
+    else if (a === 'paywall') {
+      if (inApp()) { toApp(S.premium ? 'manage' : 'paywall', 'upsell'); return; }
+      S.paywall = { reason: 'upsell' }; S.codeMsg = ''; render();
+    }
     else if (a === 'closepay') { S.paywall = null; render(); }
     else if (a === 'redeem') redeem();
     else if (a === 'nativebuy') toApp('purchase');
