@@ -1,16 +1,15 @@
-import { Platform } from 'react-native';
 import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 import { ENTITLEMENT_ID, PRODUCT_ID, RC_API_KEY_ANDROID, RC_API_KEY_IOS } from './config';
+import { initRevenueCat, isRevenueCatReady } from './revenuecat';
 
 let configured = false;
 
 export function initPurchases(): boolean {
   if (configured) return true;
-  const key = Platform.OS === 'ios' ? RC_API_KEY_IOS : RC_API_KEY_ANDROID;
-  if (!key || key.includes('REPLACE_ME')) return false; // keys not set in this build
-  Purchases.configure({ apiKey: key });
-  configured = true;
-  return true;
+  // Shared RevenueCat setup: SDK config, attribution, subscriber attributes, trusted entitlements.
+  void initRevenueCat({ entitlementId: ENTITLEMENT_ID, iosKey: RC_API_KEY_IOS, androidKey: RC_API_KEY_ANDROID });
+  configured = isRevenueCatReady(); // false while keys are still placeholders
+  return configured;
 }
 
 export function hasPremium(info: CustomerInfo | null | undefined): boolean {

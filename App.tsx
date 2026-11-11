@@ -14,6 +14,7 @@ import {
   purchase,
   restore,
 } from './src/purchases';
+import { setCustomAttributes } from './src/revenuecat';
 
 // react-native-webview 14 ships props typings that collapse to `never` under React 19 types.
 const WebView = RNWebView as unknown as React.ComponentType<any>;
@@ -55,6 +56,7 @@ function Game() {
         Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
         return;
       }
+      setCustomAttributes({ last_paywall_source: 'game_paywall', last_paywall_at: new Date().toISOString() });
       const pkg = await getPremiumPackage();
       if (!pkg) {
         Alert.alert('Premium unavailable', 'Premium cannot be loaded right now. Please try again in a moment.');
