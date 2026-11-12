@@ -5,7 +5,8 @@
 **Category:** Games > Card (iOS) / Card (Google Play)
 **Price:** Free, one in-app purchase "Twist 21 Premium" (non-consumable, product ID `twist21_premium`, $2.99)
 **Support URL:** https://samayhuf-star.github.io/twist21/support/
-**Privacy URL:** https://samayhuf-star.github.io/twist21/privacy/
+**Privacy URL:** https://samayhuf-star.github.io/twist21/privacy.html
+**Terms URL:** https://samayhuf-star.github.io/twist21/terms.html
 **Marketing URL:** https://samayhuf-star.github.io/twist21/
 
 **Keywords (iOS, 100 max):** card game,21,twenty one,action cards,strategy,skip,swap,bluff,solo,offline
