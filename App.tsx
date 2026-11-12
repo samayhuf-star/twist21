@@ -1,21 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView as RNWebView, WebViewMessageEvent } from 'react-native-webview';
 import gameHtml from './src/gameHtml';
 import { GAME_BASE_URL } from './src/config';
-import {
-  getCustomerInfo,
-  getPremiumPackage,
-  hasPremium,
-  initPurchases,
-  onCustomerInfo,
-  presentCustomerCenter,
-  presentPaywall,
-  purchase,
-  restore,
-} from './src/purchases';
+import Paywall from './src/Paywall';
+import { useChipsStore } from './src/useChipsStore';
 
 // react-native-webview 14 ships props typings that collapse to `never` under React 19 types.
 const WebView = RNWebView as unknown as React.ComponentType<any>;
@@ -25,25 +16,21 @@ function Game() {
   const insets = useSafeAreaInsets();
   const web = useRef<{ injectJavaScript: (js: string) => void } | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [paywall, setPaywall] = useState(false);
+  const store = useChipsStore();
 
   const run = (js: string) => web.current?.injectJavaScript(`${js}; true;`);
-  const pushPremium = (on: boolean) => run(`window.T21 && window.T21.setPremium(${on})`);
-  const pushPrice = (price: string) => run(`window.T21 && window.T21.setPrice(${JSON.stringify(price)})`);
 
-  const sync = useCallback(async () => {
-    if (!initPurchases()) return;
-    if (hasPremium(await getCustomerInfo())) pushPremium(true);
-    const pkg = await getPremiumPackage();
-    if (pkg) pushPrice(pkg.product.priceString);
-  }, []);
+  // Chips Pass (or the old one-time Premium) unlocks the full deck in the game.
+  useEffect(() => {
+    if (loaded) run(`window.T21 && window.T21.setPremium(${store.hasPass})`);
+  }, [loaded, store.hasPass]);
 
   useEffect(() => {
-    if (!loaded) return;
-    sync();
-    return onCustomerInfo((info) => pushPremium(hasPremium(info)));
-  }, [loaded, sync]);
+    if (loaded && store.ready) run(`window.T21 && window.T21.setChips && window.T21.setChips(${store.wallet.chips})`);
+  }, [loaded, store.ready, store.wallet.chips]);
 
-  const onMessage = async (e: WebViewMessageEvent) => {
+  const onMessage = (e: WebViewMessageEvent) => {
     let msg: { type?: string; url?: string };
     try {
       msg = JSON.parse(e.nativeEvent.data);
@@ -52,47 +39,10 @@ function Game() {
     }
     if (msg.type === 'link' && typeof msg.url === 'string' && msg.url.startsWith('https://')) {
       Linking.openURL(msg.url);
-    } else if (msg.type === 'paywall') {
-      if (!initPurchases()) {
-        Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
-        return;
-      }
-      try {
-        if (await presentPaywall()) pushPremium(true);
-      } catch (err: any) {
-        Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
-      }
-    } else if (msg.type === 'manage') {
-      if (!initPurchases()) return;
-      try {
-        await presentCustomerCenter();
-        pushPremium(hasPremium(await getCustomerInfo()));
-      } catch {
-        /* Customer Center unavailable: nothing to do */
-      }
-    } else if (msg.type === 'purchase') {
-      if (!initPurchases()) {
-        Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
-        return;
-      }
-      const pkg = await getPremiumPackage();
-      if (!pkg) {
-        Alert.alert('Premium unavailable', 'Premium cannot be loaded right now. Please try again in a moment.');
-        return;
-      }
-      try {
-        if (await purchase(pkg)) pushPremium(true);
-      } catch (err: any) {
-        Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
-      }
+    } else if (msg.type === 'paywall' || msg.type === 'manage' || msg.type === 'purchase') {
+      setPaywall(true);
     } else if (msg.type === 'restore') {
-      if (!initPurchases()) return;
-      try {
-        if (await restore()) pushPremium(true);
-        else Alert.alert('Nothing to restore', 'No earlier Premium purchase was found for this store account.');
-      } catch (err: any) {
-        Alert.alert('Restore failed', err?.message ?? 'Please try again.');
-      }
+      void store.restore();
     }
   };
 
@@ -124,6 +74,7 @@ function Game() {
           </View>
         )}
       />
+      <Paywall visible={paywall} onClose={() => setPaywall(false)} store={store} />
     </View>
   );
 }

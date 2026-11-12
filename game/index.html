@@ -247,8 +247,8 @@ a.btn { text-decoration: none; display: inline-block; }
   var FREE_KINDS = ['skip', 'peek', 'trim', 'shield', 'reverse'];
   var FREE_MATCHES = 3;
   var PRICE = '$2.99';
-  // Web: paste a RevenueCat Web Purchase Link here to turn on the Unlock button.
-  // Native: inside an Expo/React Native WebView the button asks the app to run the RevenueCat purchase.
+  // Web: paste a web checkout link here to turn on the Unlock button.
+  // Native: inside the Expo app the button opens the native Chips Pass paywall (StoreKit).
   var PAY_URL = '';
   var ENTITLEMENT = 'premium';
   function inApp() { return typeof window !== 'undefined' && !!window.ReactNativeWebView; }
@@ -342,7 +342,7 @@ a.btn { text-decoration: none; display: inline-block; }
     phase: 'intro', humanTurn: false, acted: false, pending: null, log: [],
     seen: new Set(), roundEnded: false, flipped: false, rules: false, uid: 0,
     result: null, champ: null, finish: null, fast: false, autoHuman: false, overlayKey: '',
-    premium: false, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null
+    premium: false, chips: null, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null
   };
   function kinds() { return S.premium ? ORDER : FREE_KINDS; }
   function tryRedeem(code) {
@@ -783,7 +783,7 @@ a.btn { text-decoration: none; display: inline-block; }
     if (S.pending) return 'Pick a target for ' + ACTIONS[S.pending.k].name + '.';
     if (S.humanTurn) return S.acted ? 'Action played. Now Hit or Stand.' : 'Your turn. Play one action card if you like, then Hit or Stand.';
     var p = S.players[S.cur];
-    return p && !p.human ? p.name + ' is playing…' : '';
+    return p && !p.human ? p.name + ' is playing' : '';
   }
 
   function controlsHTML(me) {
@@ -843,7 +843,7 @@ a.btn { text-decoration: none; display: inline-block; }
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
       '<p class="eyebrow">Blackjack with action cards</p><h2 id="ovt">Twist 21</h2>' +
       '<p>You against Ava and Rex. Hit and stand like blackjack, then play action cards to skip, swap, peek, shield and bend the target itself.</p>' + rulesBody() +
-      (S.premium ? '' : '<p class="score">Free: ' + FREE_MATCHES + ' matches a day and 5 of the 9 action cards. Premium unlocks all of it for ' + PRICE + ' once.</p>') +
+      (S.premium ? '' : '<p class="score">Free: ' + FREE_MATCHES + ' matches a day and 5 of the 9 action cards. ' + (inApp() ? 'Chips Pass unlocks all of it.' : 'Premium unlocks all of it for ' + PRICE + ' once.') + '</p>') +
       '<button id="primary" class="btn hit" data-act="start">Deal me in</button></div></div>';
   }
 
@@ -908,7 +908,7 @@ a.btn { text-decoration: none; display: inline-block; }
     $('#feed').innerHTML = feed;
     $('#status').textContent = statusText();
     $('#score').innerHTML = score;
-    $('#meta').textContent = 'Round ' + S.round + ' · order ' + order;
+    $('#meta').textContent = (S.chips != null ? S.chips.toLocaleString('en-US') + ' chips · ' : '') + 'Round ' + S.round + ' · order ' + order;
     var tn = $('#tnum');
     if (tn.textContent !== String(S.target)) {
       tn.textContent = S.target;
@@ -916,8 +916,8 @@ a.btn { text-decoration: none; display: inline-block; }
       ring.classList.remove('twist'); void ring.offsetWidth; ring.classList.add('twist');
     }
     var pb0 = $('#premBtn');
-    pb0.textContent = S.premium ? (inApp() ? 'Manage Premium' : 'Premium unlocked') : 'Go Premium';
-    pb0.disabled = S.premium;
+    pb0.textContent = inApp() ? (S.premium ? 'Chips Pass' : 'Get Chips Pass') : (S.premium ? 'Premium unlocked' : 'Go Premium');
+    pb0.disabled = !inApp() && S.premium;
     if (overlay !== S.lastOverlay) { $('#overlay').innerHTML = overlay; S.lastOverlay = overlay; }
     var key = S.paywall ? 'paywall' : S.rules ? 'rules' : S.phase;
     if (overlay && S.overlayKey !== key) { var pb = $('#primary'); if (pb) pb.focus(); }
@@ -948,7 +948,7 @@ a.btn { text-decoration: none; display: inline-block; }
     else if (a === 'next') nextRound();
     else if (a === 'newmatch') { if (allowMatch()) { initMatch(); beginRound(); } }
     else if (a === 'paywall') {
-      if (inApp()) { toApp(S.premium ? 'manage' : 'paywall', 'upsell'); return; }
+      if (inApp()) { toApp('paywall', 'upsell'); return; }
       S.paywall = { reason: 'upsell' }; S.codeMsg = ''; render();
     }
     else if (a === 'closepay') { S.paywall = null; render(); }
@@ -958,7 +958,9 @@ a.btn { text-decoration: none; display: inline-block; }
   }
   // The Expo app passes the store's localized price so the paywall always shows the real amount.
   function setPrice(s) { if (s) { PRICE = String(s); render(); } }
-  // The Expo app calls this after RevenueCat confirms (or revokes) the entitlement.
+  // The Expo app passes the chip balance it keeps on device.
+  function setChips(n) { var v = Math.floor(Number(n)); if (isFinite(v) && v >= 0) { S.chips = v; render(); } }
+  // The Expo app calls this when the store confirms (or ends) Chips Pass or the old Premium.
   function setPremium(on) {
     S.premium = !!on;
     if (S.premium) { S.paywall = null; log('Premium unlocked. The full deck arrives next round.'); }
@@ -990,7 +992,7 @@ a.btn { text-decoration: none; display: inline-block; }
     initMatch();
   }
 
-  var api = { S: S, setPremium: setPremium, setPrice: setPrice, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
+  var api = { S: S, setPremium: setPremium, setPrice: setPrice, setChips: setChips, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else if (typeof window !== 'undefined') window.T21 = api;
 })();

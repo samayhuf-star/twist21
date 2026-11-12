@@ -38,4 +38,4 @@ PREMIUM (one-time purchase, no subscription)
 No betting, no chips, no real-money play. No ads.
 
 **Apple age rating notes:** card game with no wagering. Answer "Simulated Gambling" honestly for your reading of the blackjack theme; the game has no betting, chips or payouts.
-**Review notes:** Premium is unlocked through StoreKit via RevenueCat. Use the sandbox tester account. Open the Premium screen from the "Go Premium" button; "Restore purchases" is on the same screen.
+**Review notes:** Chips Pass (twist21_chipspass_monthly, twist21_chipspass_yearly) and chip packs (twist21_chips_5k to twist21_chips_200k) use StoreKit 2 directly. Chips are virtual with no cash value. Use the sandbox tester account. Open the paywall from the "Get Chips Pass" button; "Restore purchases" is on the same screen.

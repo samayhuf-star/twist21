@@ -38,7 +38,8 @@
           "backgroundColor": "#100e26",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-iap"
     ],
     "owner": "krosz",
     "extra": {

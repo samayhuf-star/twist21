@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~58.0.22",
     "expo-dev-client": "~58.0.18",
+    "expo-haptics": "~58.0.7",
+    "expo-iap": "^6.4.3",
     "expo-splash-screen": "~58.0.12",
     "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
     "react-native": "0.88.1",
-    "react-native-purchases": "^11.0.0",
-    "react-native-purchases-ui": "^11.0.1",
     "react-native-safe-area-context": "~5.11.1",
     "react-native-webview": "14.0.1"
   },
@@ -22,7 +23,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "build:html": "node scripts/build-html.mjs"
+    "build:html": "node scripts/build-html.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types tests/*.test.ts"
   },
   "private": true
 }
