@@ -30,6 +30,11 @@ function Game() {
     if (loaded && store.ready) run(`window.T21 && window.T21.setChips && window.T21.setChips(${store.wallet.chips})`);
   }, [loaded, store.ready, store.wallet.chips]);
 
+  useEffect(() => {
+    if (loaded && store.ready)
+      run(`window.T21 && window.T21.setDaily && window.T21.setDaily(${store.daily.streakDay}, ${store.daily.tomorrow})`);
+  }, [loaded, store.ready, store.daily.streakDay, store.daily.tomorrow]);
+
   const onMessage = (e: WebViewMessageEvent) => {
     let msg: { type?: string; url?: string };
     try {

@@ -90,6 +90,13 @@ export default function Paywall({ visible, onClose, store }: { visible: boolean;
         <ScrollView contentContainerStyle={s.body}>
           <Animated.View style={anim}>
             <Text style={s.hero}>{store.hasPass ? 'Your Chips Pass is on' : 'Play with more chips every day'}</Text>
+            <View style={s.streak} testID="daily-streak">
+              <Text style={s.streakTitle}>Daily bonus: day {Math.min(store.daily.streakDay, 7)} of 7{store.daily.streakDay > 7 ? ' (top bonus)' : ''}</Text>
+              <Text style={s.streakBody}>
+                {store.daily.claimedToday ? 'Collected today. ' : `Today: ${store.daily.today.toLocaleString()} chips. `}
+                Tomorrow: {store.daily.tomorrow.toLocaleString()} chips if you come back.{store.hasPass ? ' Doubled by Chips Pass.' : ''}
+              </Text>
+            </View>
             {PERKS.map((p) => (
               <View key={p} style={s.perk}>
                 <View style={s.dot} />
@@ -202,6 +209,9 @@ const s = StyleSheet.create({
   balance: { color: C.muted, fontSize: 13, fontWeight: '700' },
   body: { paddingHorizontal: 20, paddingBottom: 32 },
   hero: { color: C.paper, fontSize: 30, fontWeight: '800', marginTop: 12, marginBottom: 14 },
+  streak: { backgroundColor: C.table, borderColor: C.edge, borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 14 },
+  streakTitle: { color: C.gold, fontWeight: '800', fontSize: 15 },
+  streakBody: { color: C.muted, fontSize: 13, marginTop: 4, lineHeight: 18 },
   perk: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.gold, marginRight: 12 },
   perkText: { color: C.paper, fontSize: 16 },

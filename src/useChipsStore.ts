@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import {
   deepLinkToSubscriptions,
   endConnection,
@@ -22,6 +22,7 @@ import { loadWallet, saveWallet } from './storage';
 import {
   applyStoreState,
   claimDaily,
+  dailyPreview,
   creditPack,
   emptyWallet,
   grantPassMonth,
@@ -109,6 +110,8 @@ export type ChipsStore = {
   restore: () => Promise<void>;
   manage: () => Promise<void>;
   debugLine: string;
+  /** Daily streak for the UI: current streak day and tomorrow's amount if the streak holds. */
+  daily: { streakDay: number; claimedToday: boolean; today: number; tomorrow: number };
   /** Last chips credit, for a small toast in the UI. */
   lastCredit: { amount: number; reason: string; at: number } | null;
 };
@@ -306,13 +309,20 @@ export function useChipsStore(): ChipsStore {
         await syncOwnership();
         void refreshProducts();
       }
-      const daily = await mutate((x) => {
+      await claimToday();
+      // A new local day while the app stays open (or comes back from the background).
+      subs.push(AppState.addEventListener('change', (st) => {
+        if (st === 'active') void claimToday();
+      }));
+    })();
+    async function claimToday() {
+      const credited = await mutate((x) => {
         const g = grantPassMonth(x, Date.now());
         const d = claimDaily(g.wallet, Date.now());
-        return { wallet: d.wallet, result: d.credited };
+        return { wallet: d.wallet, result: d.credited + g.credited };
       }).catch(() => 0);
-      noteCredit(daily, 'Daily bonus');
-    })();
+      noteCredit(credited, 'Daily bonus');
+    }
     return () => {
       alive = false;
       subs.forEach((s) => s.remove());
@@ -386,14 +396,16 @@ export function useChipsStore(): ChipsStore {
   const passActive = perksFor(wallet, now).monthlyChips > 0;
   const passPricesLoaded = PASS_IDS.some((id) => catalog.some((c) => c.id === id));
   const packPricesLoaded = PACK_IDS.some((id) => catalog.some((c) => c.id === id));
+  const daily = dailyPreview(wallet, now);
   const debugLine = `Store debug: ${Platform.OS} connected=${connected ? 'yes' : 'no'} | ${fetchDebug} | catalog ${catalog.length} | last error ${lastError}`;
 
   return useMemo(
     () => ({
       ready, wallet, hasPass, passActive, connected, catalog, catalogBusy, busy, message, setMessage,
-      priceOf, passPricesLoaded, packPricesLoaded, refreshProducts, buy, restore, manage, debugLine, lastCredit,
+      priceOf, passPricesLoaded, packPricesLoaded, refreshProducts, buy, restore, manage, debugLine, lastCredit, daily,
     }),
     [ready, wallet, hasPass, passActive, connected, catalog, catalogBusy, busy, message, priceOf,
-      passPricesLoaded, packPricesLoaded, refreshProducts, buy, restore, manage, debugLine, lastCredit],
+      passPricesLoaded, packPricesLoaded, refreshProducts, buy, restore, manage, debugLine, lastCredit, daily.streakDay,
+      daily.claimedToday, daily.today, daily.tomorrow],
   );
 }

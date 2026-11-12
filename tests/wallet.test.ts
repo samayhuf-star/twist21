@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   applyStoreState, claimDaily, creditPack, emptyWallet, grantPassMonth, monthIndex, normalizeWallet,
-  passActiveAt, passFromStore, perksFor, DAILY_BONUS, PASS_MONTHLY_CHIPS, START_CHIPS,
+  passActiveAt, passFromStore, perksFor, dailyPreview, rampAmount, DAILY_RAMP, PASS_MONTHLY_CHIPS, START_CHIPS,
 } from '../src/wallet.ts';
 
 const NOW = Date.UTC(2026, 10, 12, 14, 0, 0);
@@ -56,13 +56,48 @@ const passRecord = (over: Record<string, unknown> = {}) => ({
   originalTransactionDateIOS: NOW - 5 * DAY, expirationDateIOS: NOW + 25 * DAY, purchaseState: 'purchased', ...over,
 });
 
-test('Pass grants 10,000 chips once per subscription month', () => {
+test('monthly Pass grants 10,000 chips once per verified period', () => {
   const a = applyStoreState(emptyWallet(), [passRecord()], NOW);
   assert.equal(a.credited, PASS_MONTHLY_CHIPS);
-  const again = applyStoreState(a.wallet, [passRecord({ transactionId: 'r2' })], NOW + DAY);
-  assert.equal(again.credited, 0);
-  const nextMonth = applyStoreState(again.wallet, [passRecord({ expirationDateIOS: NOW + 60 * DAY })], NOW + 30 * DAY);
-  assert.equal(nextMonth.credited, PASS_MONTHLY_CHIPS);
+  // Same period seen again: relaunch read, restore, listener replay, or the active-subscription
+  // record that has no original transaction id.
+  const replays = [
+    passRecord(),
+    { productId: 'twist21_chipspass_monthly', transactionId: 'r1', expirationDateIOS: NOW + 25 * DAY, isActive: true },
+    { productId: 'twist21_chipspass_monthly', transactionId: 'r1-dup', expirationDateIOS: NOW + 25 * DAY, isActive: true },
+  ];
+  let w = a.wallet;
+  for (const r of replays) {
+    const again = applyStoreState(w, [r], NOW + DAY);
+    assert.equal(again.credited, 0);
+    w = normalizeWallet(JSON.parse(JSON.stringify(again.wallet)));
+  }
+  assert.equal(w.chips, START_CHIPS + PASS_MONTHLY_CHIPS);
+  // No renewal yet: a cached Pass gives nothing more in the same period.
+  assert.equal(grantPassMonth(w, NOW + 20 * DAY).credited, 0);
+  // Verified renewal: new transaction id and expiry, credited once.
+  const renewal = passRecord({ transactionId: 'r2', transactionDate: NOW + 25 * DAY, expirationDateIOS: NOW + 55 * DAY });
+  const next = applyStoreState(w, [renewal], NOW + 26 * DAY);
+  assert.equal(next.credited, PASS_MONTHLY_CHIPS);
+  assert.equal(applyStoreState(next.wallet, [renewal], NOW + 27 * DAY).credited, 0);
+});
+
+test('yearly Pass drips 10,000 once per month of the verified year', () => {
+  const start = NOW;
+  const yearly = (over: Record<string, unknown> = {}) => passRecord({
+    productId: 'twist21_chipspass_yearly', transactionId: 'y1', originalTransactionIdentifierIOS: 'oy',
+    transactionDate: start, expirationDateIOS: start + 365 * DAY, ...over,
+  });
+  let w = emptyWallet();
+  let total = 0;
+  for (let d = 0; d < 365; d += 5) {
+    const r = applyStoreState(w, [yearly()], start + d * DAY);
+    total += r.credited;
+    w = r.wallet;
+  }
+  assert.equal(total, 12 * PASS_MONTHLY_CHIPS);
+  // Replays inside the year never add more.
+  assert.equal(applyStoreState(w, [yearly()], start + 364 * DAY).credited, 0);
 });
 
 test('yearly Pass also pays monthly and wins over monthly', () => {
@@ -70,6 +105,7 @@ test('yearly Pass also pays monthly and wins over monthly', () => {
   const p = passFromStore(recs, NOW);
   assert.equal(p.productId, 'twist21_chipspass_yearly');
   assert.equal(p.anchor, 'origY');
+  assert.equal(p.periodTx, 'r1');
 });
 
 test('expired, revoked or pending Pass gives no perks', () => {
@@ -86,14 +122,60 @@ test('Pass perks: no ads, 2x daily bonus, full deck', () => {
   const p = perksFor(w, NOW);
   assert.deepEqual(p, { noAds: true, dailyMultiplier: 2, monthlyChips: PASS_MONTHLY_CHIPS, fullDeck: true, unlimitedMatches: true });
   const d = claimDaily(w, NOW);
-  assert.equal(d.credited, DAILY_BONUS * 2);
+  assert.equal(d.credited, DAILY_RAMP[0] * 2);
   assert.equal(claimDaily(d.wallet, NOW + 1000).credited, 0);
 });
 
-test('free players get the plain daily bonus once a day', () => {
+test('daily ramp: 1,000 to 3,000 over 7 consecutive days, then stays at 3,000', () => {
+  assert.deepEqual([...DAILY_RAMP], [1000, 1350, 1650, 2000, 2350, 2650, 3000]);
+  let w = emptyWallet();
+  const got: number[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = claimDaily(w, NOW + i * DAY);
+    got.push(r.credited);
+    w = r.wallet;
+  }
+  assert.deepEqual(got, [1000, 1350, 1650, 2000, 2350, 2650, 3000, 3000, 3000, 3000]);
+  assert.equal(w.streakDay, 10);
+  assert.equal(rampAmount(0), 1000);
+  assert.equal(rampAmount(99), 3000);
+});
+
+test('daily bonus only once per local day', () => {
   const d = claimDaily(emptyWallet(), NOW);
-  assert.equal(d.credited, DAILY_BONUS);
-  assert.equal(claimDaily(d.wallet, NOW + 2 * DAY).credited, DAILY_BONUS);
+  assert.equal(d.credited, 1000);
+  assert.equal(claimDaily(d.wallet, NOW + 60_000).credited, 0);
+});
+
+test('missing a calendar day resets the streak to day 1', () => {
+  let w = emptyWallet();
+  for (let i = 0; i < 4; i++) w = claimDaily(w, NOW + i * DAY).wallet;
+  assert.equal(w.streakDay, 4);
+  const r = claimDaily(w, NOW + 5 * DAY); // day index 4 skipped
+  assert.equal(r.credited, 1000);
+  assert.equal(r.wallet.streakDay, 1);
+  assert.equal(claimDaily(r.wallet, NOW + 6 * DAY).credited, 1350);
+});
+
+test('Chips Pass doubles every step of the ramp', () => {
+  const rec = passRecord({ expirationDateIOS: NOW + 400 * DAY });
+  let w = applyStoreState(emptyWallet(), [rec], NOW).wallet;
+  const got: number[] = [];
+  for (let i = 0; i < 8; i++) {
+    const r = claimDaily(w, NOW + i * DAY);
+    got.push(r.credited);
+    w = r.wallet;
+  }
+  assert.deepEqual(got, [2000, 2700, 3300, 4000, 4700, 5300, 6000, 6000]);
+});
+
+test('preview shows the streak day and tomorrow amount', () => {
+  let w = claimDaily(emptyWallet(), NOW).wallet;
+  w = claimDaily(w, NOW + DAY).wallet;
+  assert.deepEqual(dailyPreview(w, NOW + DAY), { streakDay: 2, claimedToday: true, today: 1350, tomorrow: 1650 });
+  assert.deepEqual(dailyPreview(w, NOW + 3 * DAY), { streakDay: 1, claimedToday: false, today: 1000, tomorrow: 1350 });
+  const pass = applyStoreState(w, [passRecord()], NOW + DAY).wallet;
+  assert.equal(dailyPreview(pass, NOW + DAY).tomorrow, 3300);
 });
 
 test('Pass lapses at its expiry even without a fresh store read', () => {

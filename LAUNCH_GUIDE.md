@@ -6,6 +6,7 @@ Stack: Expo (React Native) + a WebView running the game page + expo-iap (StoreKi
 ## How it fits together
 - `game/index.html` is the whole game. `npm run build:html` embeds it into `src/gameHtml.ts`.
 - In the app the paywall is native (`src/Paywall.tsx`). The game's Chips Pass button messages the native side, which opens it. `src/useChipsStore.ts` runs expo-iap; `src/wallet.ts` is the pure entitlement and chip ledger (tested in `tests/`). Results go back to the game with `window.T21.setPremium(...)` and `window.T21.setChips(...)`.
+- Chip economy (`src/wallet.ts`): start 10,000 chips. Daily bonus ramps over 7 consecutive local days via `DAILY_RAMP` (1,000, 1,350, 1,650, 2,000, 2,350, 2,650, 3,000), stays at 3,000 after day 7, and a missed day resets to day 1. Chips Pass doubles it. Chips Pass grants 10,000 chips once per verified billing period, keyed on the period's transaction id and on product plus expiry. Yearly keeps a monthly drip: 10,000 once per month slot of the verified year (12 slots).
 - Packs: chips are credited and saved first, then the transaction is finished with `isConsumable: true`. Processed transaction ids are kept so a relaunch or replay never double-credits. Packs are not restored.
 - The paywall shows a small grey store debug line (connection, per-fetch count and SKUs or error, catalog size, last error).
 - The unlock-code box is hidden inside the app (store rules); it exists only on the web version.

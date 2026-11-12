@@ -342,7 +342,7 @@ a.btn { text-decoration: none; display: inline-block; }
     phase: 'intro', humanTurn: false, acted: false, pending: null, log: [],
     seen: new Set(), roundEnded: false, flipped: false, rules: false, uid: 0,
     result: null, champ: null, finish: null, fast: false, autoHuman: false, overlayKey: '',
-    premium: false, chips: null, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null
+    premium: false, chips: null, daily: null, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null
   };
   function kinds() { return S.premium ? ORDER : FREE_KINDS; }
   function tryRedeem(code) {
@@ -908,7 +908,9 @@ a.btn { text-decoration: none; display: inline-block; }
     $('#feed').innerHTML = feed;
     $('#status').textContent = statusText();
     $('#score').innerHTML = score;
-    $('#meta').textContent = (S.chips != null ? S.chips.toLocaleString('en-US') + ' chips · ' : '') + 'Round ' + S.round + ' · order ' + order;
+    $('#meta').textContent = (S.chips != null ? S.chips.toLocaleString('en-US') + ' chips · ' : '') +
+      (S.daily ? 'Streak day ' + S.daily.day + ', tomorrow +' + S.daily.tomorrow.toLocaleString('en-US') + ' · ' : '') +
+      'Round ' + S.round + ' · order ' + order;
     var tn = $('#tnum');
     if (tn.textContent !== String(S.target)) {
       tn.textContent = S.target;
@@ -959,6 +961,11 @@ a.btn { text-decoration: none; display: inline-block; }
   // The Expo app passes the store's localized price so the paywall always shows the real amount.
   function setPrice(s) { if (s) { PRICE = String(s); render(); } }
   // The Expo app passes the chip balance it keeps on device.
+  // Daily streak from the app: current streak day and tomorrow's bonus if the streak holds.
+  function setDaily(day, tomorrow) {
+    var d = Math.floor(Number(day)), t = Math.floor(Number(tomorrow));
+    if (isFinite(d) && d > 0 && isFinite(t) && t >= 0) { S.daily = { day: d, tomorrow: t }; render(); }
+  }
   function setChips(n) { var v = Math.floor(Number(n)); if (isFinite(v) && v >= 0) { S.chips = v; render(); } }
   // The Expo app calls this when the store confirms (or ends) Chips Pass or the old Premium.
   function setPremium(on) {
@@ -992,7 +999,7 @@ a.btn { text-decoration: none; display: inline-block; }
     initMatch();
   }
 
-  var api = { S: S, setPremium: setPremium, setPrice: setPrice, setChips: setChips, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
+  var api = { S: S, setPremium: setPremium, setPrice: setPrice, setChips: setChips, setDaily: setDaily, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else if (typeof window !== 'undefined') window.T21 = api;
 })();
