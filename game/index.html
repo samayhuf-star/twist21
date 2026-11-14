@@ -191,8 +191,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
 .perks li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; }
 .perks svg { width: 22px; height: 22px; flex: none; color: var(--hot); margin-top: 1px; }
 .perks li:last-child svg { color: var(--mint); }
-.price { color: var(--muted); }
-.price b { font-family: var(--display); font-weight: 900; font-size: 30px; color: var(--paper); margin-right: 6px; }
+.priceamount { font-family: var(--display); font-weight: 900; font-size: 52px; line-height: 1; margin: 0; letter-spacing: -0.03em; }
+.pricenote { margin: 6px 0 0; font-weight: 700; }
+.legalhead { margin: 4px 0 0; color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.unavailable { margin: 0; color: var(--muted); }
 a.btn { text-decoration: none; display: inline-block; }
 .codebox { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--edge); padding-top: 12px; }
 .codebox label { font-weight: 700; font-size: 14px; }
@@ -202,8 +204,8 @@ a.btn { text-decoration: none; display: inline-block; }
 .codemsg { min-height: 1.4em; color: var(--rose); font-size: 14px; }
 .dialog > .link { align-self: flex-start; }
 
-.legal { color: var(--muted); font-size: 13px; }
-.legal a { color: var(--paper); }
+.legal { color: var(--muted); font-size: 13px; margin: 0; }
+.legal a { color: var(--twist); font-weight: 700; }
 
 </style>
 </head>
@@ -246,15 +248,17 @@ a.btn { text-decoration: none; display: inline-block; }
   // ---- monetisation ----
   var FREE_KINDS = ['skip', 'peek', 'trim', 'shield', 'reverse'];
   var FREE_MATCHES = 3;
-  var PRICE = '$2.99';
+  // Fallback until the app injects StoreKit's localized price. Keep in step with PRICING.lifetimePrice.
+  var PRICE = '$39.99';
   // Web: paste a RevenueCat Web Purchase Link here to turn on the Unlock button.
-  // Native: inside an Expo/React Native WebView the button asks the app to run the RevenueCat purchase.
+  // Native: the in-app paywall shows the price and contents, then asks the app to run the purchase.
   var PAY_URL = '';
   var ENTITLEMENT = 'premium';
   function inApp() { return typeof window !== 'undefined' && !!window.ReactNativeWebView; }
   function toApp(type, url) { try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, entitlement: ENTITLEMENT, url: url })); } catch (e) { /* not in app */ } }
   var PRIVACY_URL = 'https://samayhuf-star.github.io/twist21/privacy/';
-  var TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+  var TERMS_URL = 'https://samayhuf-star.github.io/twist21/terms/';
+  var SUPPORT_URL = 'https://samayhuf-star.github.io/twist21/support/';
   var HASHES = ["1c0942f89b19165b31071714be0d554ded21b5528e72f714c9976c53d7f69d9d", "e7fabba1ce350758c026f103340124a22f608d9e0d63cfb4af290787b3230de6", "6e45e1a5c85a94e964bef3b74fdd42d29fe3e6a7e066f726c27e95615be6d066", "0d57c3e7470230266f5c00c51efa6ac1b43e3e4c6415829a3406eddeca5d111e", "413b3b0d946d7bf2e5a20c181e7ea4e684ad8e54b9e6b3711bc3077009827182", "61a6f72e7010ab6247a7a5a7f8a5f478673c825def5b1bf30f92390db731d6be", "86a2174d17d064f7e8e8e562c38e2e3d1860bbf36c4c8e4ef966b5c9de432f1c", "0a08c22a3c9e1cc4763026b945b3f264b003a49a6626a474f8d0bd262400b826", "c5cf1040af74fd8a72a0746f515865f09d945e5650648c4ece1d2405980b18e8", "4c281feff7f6e3746eda1282bbc47470ca146d0953574ce6bda8f5b46f58dca3", "28cff48f2402c50ce46744191d691adeafc7e4279e66ff992157066f1bc8f244", "05234c60395d386f7490bcb2c61be90e049c7558127c204f3ca16086a0efc33f", "64f3ae7e4ab651387164059ae1eba5ab61f3d70f870921b973bd60e93c9e5d0a", "0436f6260befa86709037032d3b575301cbdd21b8b882636e8a19491e16a88f6", "a3cfca43541007c57e293c4bf28c0dfb811c28ad04185ad13b5bd1719de098e6", "fff59ba977c9eb8369bd707578185c122944b75e2b2704b634f8e52d83de25c7", "7881885e051d0c7397ea6150ea9244e35d42d81375097edaa9259ea906346eee", "7286b7f42df802eaf04e46879b3610113ae85f7f5f25813af16694e3a380e41c", "42e7e2226f2df1eb868b09affc5845add9f38b5fa5c19870b16e9142ccf7b2b9", "f735164493c9f501022f7029e9e179e77c20be0883b902ed62c6345e24091cc4", "80e15a95666ceb90107ba5ef9193d0e7955e158fccc6e9911060336a11875ece", "e826a6abb71d58aeef52084bf0096e3b552d7d2a2c77aeb757cdbb38463326c9", "cb13a42f8754123130fd204d4e9b3c848c2c459c3b478346dadf2b22ecb2b3ab", "51c238e973ad38529bddd77de4289ddd34e991898145afb2babca50cc8dd5012", "a5b21b09f727676951a078f24a42fff7a21ac80ecea2077003365776d9bc5a8c", "1840bc931321ba8c0e1e35746f0285b3a63e0421bdf4aa8765f17f0ee09bb1d6", "7b4d37a1b097769c4c17df61a8d0cd1d74db64c6ed9508ad14f30e585709cec2", "539201d9522e959eb1875b900d58aca4aad6b74c3f9fa94818af4d8105153c74", "3ba0d714630418e7de49987d574043f4ac42989eb003fbb83276e1a3ef8f2d37", "6c294893b593fe56a3fd547cf0cf6527fa2c208fb2448b1185aa052c8a129001", "51b83b2eabb5b170994e51481417f83acfdc34d22154984542d90cab3207ddcb", "b8b37c60639577921da46e18169abb8bbc205e8c8f0032cdee7cf2cf4aa607e8", "0035ba4edb5aca31105f5e9c8cc79adcf0cf5cd07ab5981cc060629b400b94e5", "f1cd5ef52983ef1a94e13c0b7469b69150a458373e4d76470787b11059871f2e", "b3b05c48f04cb73d8a857b0ac3d490303f89f4a8534f2faf6d232335ecb4e5a6", "146aca8ac3e041a3c1f0cb221451e43bb54d842c9715d0de21ab1c4410354c28", "67c20532c40b9e2f9d7db4cf353cf70ab15e662a20024c254e4e3ff02acad5a7", "a4ba944728719c7fd207cedf58d59d17cffda4fa682e904d741199b36b71bd0e", "0bbd2811eaa44f8db857fbeaaa003adcf7fa1eb122f59cc37b866214fabf3ce3", "153415b7cff98a07624c682d6e333af7472881b125f4e53fb8c1b7559ba1f2bc"];
 
   function sha256(ascii) {
@@ -342,7 +346,7 @@ a.btn { text-decoration: none; display: inline-block; }
     phase: 'intro', humanTurn: false, acted: false, pending: null, log: [],
     seen: new Set(), roundEnded: false, flipped: false, rules: false, uid: 0,
     result: null, champ: null, finish: null, fast: false, autoHuman: false, overlayKey: '',
-    premium: false, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null
+    premium: false, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null, storeReady: false
   };
   function kinds() { return S.premium ? ORDER : FREE_KINDS; }
   function tryRedeem(code) {
@@ -353,7 +357,6 @@ a.btn { text-decoration: none; display: inline-block; }
   function allowMatch() {
     if (S.premium) return true;
     if (matchesToday() >= FREE_MATCHES) {
-      if (inApp()) { toApp('paywall', 'limit'); return false; }
       S.paywall = { reason: 'limit' }; render(); return false;
     }
     bumpMatches();
@@ -839,45 +842,67 @@ a.btn { text-decoration: none; display: inline-block; }
       '<div class="tablewrap"><table class="cardtable"><tbody>' + rows + '</tbody></table></div>';
   }
 
+  function legalHTML() {
+    function a(url, label) {
+      return '<a href="' + url + '" target="_blank" rel="noopener" data-act="link" data-url="' + url + '">' + label + '</a>';
+    }
+    return '<p class="legal">' +
+      a(TERMS_URL, 'Terms of Use (Apple Standard EULA)') + ' · ' +
+      a(PRIVACY_URL, 'Privacy Policy') + ' · ' +
+      a(SUPPORT_URL, 'Support') + '</p>';
+  }
+
   function introHTML() {
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
       '<p class="eyebrow">Blackjack with action cards</p><h2 id="ovt">Twist 21</h2>' +
-      '<p>You against Ava and Rex. Hit and stand like blackjack, then play action cards to skip, swap, peek, shield and bend the target itself.</p>' + rulesBody() +
-      (S.premium ? '' : '<p class="score">Free: ' + FREE_MATCHES + ' matches a day and 5 of the 9 action cards. Premium unlocks all of it for ' + PRICE + ' once.</p>') +
-      '<button id="primary" class="btn hit" data-act="start">Deal me in</button></div></div>';
+      '<p>You against Ava and Rex. Hit and stand like blackjack, then play action cards to skip, swap, peek, shield and bend the target itself.</p>' +
+      (S.premium ? '' : '<p class="score">Free: ' + FREE_MATCHES + ' matches a day and 5 of the 9 action cards. Twist 21 Premium is a one-time ' + PRICE + ' purchase: the other 4 action cards, unlimited matches, and the bust-chance meter. No subscription.</p>') +
+      legalHTML() +
+      '<button id="primary" class="btn hit" data-act="start">Deal me in</button>' +
+      rulesBody() + '</div></div>';
   }
 
   function rulesHTML() {
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
-      '<p class="eyebrow">How to play</p><h2 id="ovt">Twist 21 rules</h2>' + rulesBody() +
+      '<p class="eyebrow">How to play</p><h2 id="ovt">Twist 21 rules</h2>' +
+      '<p class="legalhead">Legal</p>' + legalHTML() +
+      rulesBody() +
       '<button id="primary" class="btn stand" data-act="closerules">Back to the table</button></div></div>';
   }
 
   function paywallHTML() {
     var why = S.paywall && S.paywall.reason === 'limit'
-      ? 'You have played your ' + FREE_MATCHES + ' free matches today. They reset at midnight, or unlock everything now.'
-      : 'Free play has 5 of the 9 action cards and ' + FREE_MATCHES + ' matches a day.';
+      ? 'You have played your ' + FREE_MATCHES + ' free matches today. They reset at midnight, or unlock Premium now.'
+      : 'Free play includes 5 of the 9 action cards and ' + FREE_MATCHES + ' matches a day.';
     var app = inApp();
-    var buy = app
-      ? '<button id="primary" class="btn hit" data-act="nativebuy" type="button">Unlock for ' + PRICE + '</button>'
-      : PAY_URL
-        ? '<a id="primary" class="btn hit" href="' + PAY_URL + '" target="_blank" rel="noopener">Unlock for ' + PRICE + '</a>'
-        : '<button id="primary" class="btn hit" type="button" disabled>Checkout opens soon</button>';
+    var buy = app && !S.storeReady
+      ? '<p class="unavailable">Purchases are not available in this build. Free play still works. Email samayhuf@gmail.com if this persists.</p>'
+      : app
+        ? '<button id="primary" class="btn hit" data-act="nativebuy" type="button">Unlock for ' + PRICE + '</button>'
+        : PAY_URL
+          ? '<a id="primary" class="btn hit" href="' + PAY_URL + '" target="_blank" rel="noopener">Unlock for ' + PRICE + '</a>'
+          : '<p class="unavailable">On the web, redeem a code below. In the iOS app, Premium is an Apple In-App Purchase at the price shown above.</p>';
     var codeBox = app
       ? '<div class="codebox"><button class="btn stand" data-act="nativerestore" type="button">Restore purchases</button></div>'
-      : '<div class="codebox"><label for="code">Already paid? Enter your unlock code</label>' +
-        '<div class="coderow"><input id="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="T21-XXXX-XXXX" value="' + S.codeDraft.replace(/"/g, '') + '">' +
+      : '<div class="codebox"><label for="code">Already paid on the web? Enter your unlock code</label>' +
+        '<div class="coderow"><input id="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Unlock code" value="' + S.codeDraft.replace(/"/g, '') + '">' +
         '<button class="btn stand" data-act="redeem" type="button">Redeem</button></div>' +
         '<p class="codemsg" role="status">' + S.codeMsg + '</p></div>';
     var locked = ORDER.filter(function (k) { return FREE_KINDS.indexOf(k) < 0; }).map(function (k) {
-      return '<li>' + icon(k) + '<span><strong>' + ACTIONS[k].name + '</strong> ' + ACTIONS[k].desc + '</span></li>';
+      return '<li>' + icon(k) + '<span><strong>' + ACTIONS[k].name + '</strong> — ' + ACTIONS[k].desc + '</span></li>';
     }).join('');
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
-      '<p class="eyebrow">Twist 21 Premium</p><h2 id="ovt">Unlock the whole deck</h2><p>' + why + '</p>' +
-      '<ul class="perks">' + locked + '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span><strong>Unlimited matches</strong> and the live bust-chance meter.</span></li></ul>' +
-      '<p class="price"><b>' + PRICE + '</b> once. Yours for good, no subscription.</p>' + buy +
+      '<p class="eyebrow">Lifetime unlock · one-time purchase</p><h2 id="ovt">Twist 21 Premium</h2>' +
+      '<p class="priceamount">' + PRICE + '</p>' +
+      '<p class="pricenote">Charged once by Apple. Does not renew. No subscription.</p>' +
+      '<p>' + why + '</p>' +
+      '<p class="legalhead">What you unlock</p>' +
+      '<ul class="perks">' + locked +
+      '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span><strong>Unlimited matches</strong> — the 3-a-day limit goes away.</span></li>' +
+      '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span><strong>Bust-chance meter</strong> — the odds if you hit, shown on your turn.</span></li></ul>' +
+      legalHTML() +
+      buy +
       codeBox +
-      '<p class="legal">One-time purchase, no subscription. <a href="' + TERMS_URL + '" target="_blank" rel="noopener" data-act="link" data-url="' + TERMS_URL + '">Terms</a> \u00b7 <a href="' + PRIVACY_URL + '" target="_blank" rel="noopener" data-act="link" data-url="' + PRIVACY_URL + '">Privacy</a></p>' +
       '<button class="link" data-act="closepay" type="button">Maybe later</button></div></div>';
   }
 
@@ -917,7 +942,7 @@ a.btn { text-decoration: none; display: inline-block; }
     }
     var pb0 = $('#premBtn');
     pb0.textContent = S.premium ? (inApp() ? 'Manage Premium' : 'Premium unlocked') : 'Go Premium';
-    pb0.disabled = S.premium;
+    pb0.disabled = S.premium && !inApp();
     if (overlay !== S.lastOverlay) { $('#overlay').innerHTML = overlay; S.lastOverlay = overlay; }
     var key = S.paywall ? 'paywall' : S.rules ? 'rules' : S.phase;
     if (overlay && S.overlayKey !== key) { var pb = $('#primary'); if (pb) pb.focus(); }
@@ -948,7 +973,7 @@ a.btn { text-decoration: none; display: inline-block; }
     else if (a === 'next') nextRound();
     else if (a === 'newmatch') { if (allowMatch()) { initMatch(); beginRound(); } }
     else if (a === 'paywall') {
-      if (inApp()) { toApp(S.premium ? 'manage' : 'paywall', 'upsell'); return; }
+      if (inApp() && S.premium) { toApp('manage'); return; }
       S.paywall = { reason: 'upsell' }; S.codeMsg = ''; render();
     }
     else if (a === 'closepay') { S.paywall = null; render(); }
@@ -958,6 +983,7 @@ a.btn { text-decoration: none; display: inline-block; }
   }
   // The Expo app passes the store's localized price so the paywall always shows the real amount.
   function setPrice(s) { if (s) { PRICE = String(s); render(); } }
+  function setStoreReady(on) { S.storeReady = !!on; render(); }
   // The Expo app calls this after RevenueCat confirms (or revokes) the entitlement.
   function setPremium(on) {
     S.premium = !!on;
@@ -990,7 +1016,7 @@ a.btn { text-decoration: none; display: inline-block; }
     initMatch();
   }
 
-  var api = { S: S, setPremium: setPremium, setPrice: setPrice, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
+  var api = { S: S, setPremium: setPremium, setPrice: setPrice, setStoreReady: setStoreReady, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else if (typeof window !== 'undefined') window.T21 = api;
 })();

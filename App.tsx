@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView as RNWebView, WebViewMessageEvent } from 'react-native-webview';
 import gameHtml from './src/gameHtml';
-import { GAME_BASE_URL } from './src/config';
+import { GAME_BASE_URL, lifetimePriceLabel } from './src/config';
 import {
   getCustomerInfo,
   getPremiumPackage,
@@ -12,7 +12,6 @@ import {
   initPurchases,
   onCustomerInfo,
   presentCustomerCenter,
-  presentPaywall,
   purchase,
   restore,
 } from './src/purchases';
@@ -31,10 +30,14 @@ function Game() {
   const pushPrice = (price: string) => run(`window.T21 && window.T21.setPrice(${JSON.stringify(price)})`);
 
   const sync = useCallback(async () => {
-    if (!initPurchases()) return;
+    const ready = initPurchases();
+    // The game draws price, contents, restore, and legal links itself. StoreKit price replaces the fallback.
+    run(`window.T21 && window.T21.setStoreReady(${ready})`);
+    pushPrice(lifetimePriceLabel());
+    if (!ready) return;
     if (hasPremium(await getCustomerInfo())) pushPremium(true);
     const pkg = await getPremiumPackage();
-    if (pkg) pushPrice(pkg.product.priceString);
+    if (pkg?.product.priceString) pushPrice(pkg.product.priceString);
   }, []);
 
   useEffect(() => {
@@ -52,18 +55,11 @@ function Game() {
     }
     if (msg.type === 'link' && typeof msg.url === 'string' && msg.url.startsWith('https://')) {
       Linking.openURL(msg.url);
-    } else if (msg.type === 'paywall') {
+    } else if (msg.type === 'manage') {
       if (!initPurchases()) {
         Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
         return;
       }
-      try {
-        if (await presentPaywall()) pushPremium(true);
-      } catch (err: any) {
-        Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
-      }
-    } else if (msg.type === 'manage') {
-      if (!initPurchases()) return;
       try {
         await presentCustomerCenter();
         pushPremium(hasPremium(await getCustomerInfo()));
@@ -86,7 +82,10 @@ function Game() {
         Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
       }
     } else if (msg.type === 'restore') {
-      if (!initPurchases()) return;
+      if (!initPurchases()) {
+        Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
+        return;
+      }
       try {
         if (await restore()) pushPremium(true);
         else Alert.alert('Nothing to restore', 'No earlier Premium purchase was found for this store account.');
