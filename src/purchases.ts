@@ -1,23 +1,29 @@
 import { Platform } from 'react-native';
 import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
-import { ENTITLEMENT_ID, PRODUCT_ID, RC_API_KEY_ANDROID, RC_API_KEY_IOS } from './config';
-
+import RevenueCatUI from 'react-native-purchases-ui';
+import {
+  ENTITLEMENT_ID,
+  isRealRcKey,
+  PRODUCT_ID_LIFETIME,
+  RC_API_KEY_ANDROID,
+  RC_API_KEY_IOS,
+} from './config';
 
 async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelay = 1000): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (e: any) {
+    } catch (e: unknown) {
       lastError = e;
+      const err = e as { userCancelled?: boolean; code?: string };
       // Don't retry user cancellations or permanent errors
-      if (e?.userCancelled || e?.code === 'PURCHASE_CANCELLED' || e?.code === 'PRODUCT_NOT_AVAILABLE') {
+      if (err?.userCancelled || err?.code === 'PURCHASE_CANCELLED' || err?.code === 'PRODUCT_NOT_AVAILABLE') {
         throw e;
       }
       if (attempt < maxAttempts) {
         const delay = baseDelay * Math.pow(2, attempt - 1);
-        await new Promise(r => setTimeout(r, delay));
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
   }
@@ -26,10 +32,16 @@ async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelay = 1
 
 let configured = false;
 
+export function purchasesReady(): boolean {
+  return configured;
+}
+
 export function initPurchases(): boolean {
   if (configured) return true;
-  const key = Platform.OS === 'ios' ? RC_API_KEY_IOS : RC_API_KEY_ANDROID;
-  if (!key || key.includes('REPLACE_ME')) return false; // keys not set in this build
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return false;
+  const platform = Platform.OS;
+  const key = platform === 'ios' ? RC_API_KEY_IOS : RC_API_KEY_ANDROID;
+  if (!isRealRcKey(key, platform)) return false;
   if (__DEV__) Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
   Purchases.configure({ apiKey: key });
   configured = true;
@@ -60,18 +72,20 @@ export function onCustomerInfo(cb: (info: CustomerInfo) => void) {
   };
 }
 
-/** The one-time Premium package from the current offering. */
+function isLifetimeProduct(pkg: PurchasesPackage): boolean {
+  return pkg.product.identifier === PRODUCT_ID_LIFETIME;
+}
+
+/** The lifetime Premium package. Never falls through to a different product. */
 export async function getPremiumPackage(): Promise<PurchasesPackage | null> {
   if (!configured) return null;
   try {
     const cur = (await withRetry(() => Purchases.getOfferings())).current;
     if (!cur) return null;
-    return (
-      cur.lifetime ??
-      cur.availablePackages.find((p) => p.product.identifier.startsWith(PRODUCT_ID)) ??
-      cur.availablePackages[0] ??
-      null
-    );
+    const match = cur.availablePackages.find(isLifetimeProduct);
+    if (match) return match;
+    if (cur.lifetime && isLifetimeProduct(cur.lifetime)) return cur.lifetime;
+    return null;
   } catch {
     return null;
   }
@@ -81,8 +95,9 @@ export async function purchase(pkg: PurchasesPackage): Promise<boolean> {
   try {
     const { customerInfo } = await withRetry(() => Purchases.purchasePackage(pkg));
     return hasPremium(customerInfo);
-  } catch (e: any) {
-    if (e?.userCancelled || e?.code === 'PURCHASE_CANCELLED') return false;
+  } catch (e: unknown) {
+    const err = e as { userCancelled?: boolean; code?: string };
+    if (err?.userCancelled || err?.code === 'PURCHASE_CANCELLED') return false;
     throw e;
   }
 }
@@ -90,28 +105,6 @@ export async function purchase(pkg: PurchasesPackage): Promise<boolean> {
 export async function restore(): Promise<boolean> {
   if (!configured) return false;
   return hasPremium(await Purchases.restorePurchases());
-}
-
-/**
- * Presents the RevenueCat-hosted paywall (designed in the dashboard, attached to the current offering).
- * Falls back to a direct package purchase if the dashboard paywall is not available yet.
- * Resolves true when the user now owns Premium.
- */
-export async function presentPaywall(): Promise<boolean> {
-  if (!configured) return false;
-  try {
-    const result = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: ENTITLEMENT_ID });
-    if (result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED) return true;
-    if (result === PAYWALL_RESULT.NOT_PRESENTED) return hasPremium(await getCustomerInfo());
-    if (result === PAYWALL_RESULT.ERROR) {
-      const pkg = await getPremiumPackage();
-      return pkg ? await purchase(pkg) : false;
-    }
-    return false;
-  } catch {
-    const pkg = await getPremiumPackage();
-    return pkg ? await purchase(pkg) : false;
-  }
 }
 
 /** RevenueCat Customer Center: restore, support, purchase management. */
