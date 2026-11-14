@@ -57,7 +57,7 @@ async function scene(spec) {
       p.bust = !!row.bust;
       p.stood = !!row.stood;
       p.shield = !!row.shield;
-      p.skip = false;
+      p.skip = !!row.skip;
       p.peeked = new Set();
     }
     if (spec.phase === 'roundEnd') {
@@ -140,14 +140,14 @@ await page.screenshot({ path: path.join(outDir, '04-round-result.png') });
 
 await scene({
   scroll: 'top',
-  target: 24,
+  target: 21,
   round: 4,
-  you: { cards: [9, 8, 6], actions: ['raise', 'trim'], points: 3 },
-  ava: { cards: [10, 8, 4], actions: ['shield'], points: 2 },
-  rex: { cards: [7, 6, 5], actions: ['reverse'], points: 2 },
-  log: ['You play Target 24. The target is now 24.'],
+  you: { cards: [7, 6, 4], actions: ['trim', 'reverse', 'shield'], points: 3 },
+  ava: { cards: [8, 5, 3], actions: ['peek'], points: 2, skip: true },
+  rex: { cards: [9, 4], actions: ['shield'], points: 1 },
+  log: ['You play Skip. Ava misses a turn.'],
 });
-await page.screenshot({ path: path.join(outDir, '05-target-24.png') });
+await page.screenshot({ path: path.join(outDir, '05-skip.png') });
 
 await scene({
   paywall: 'upsell',

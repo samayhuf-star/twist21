@@ -24,6 +24,6 @@ How to test the in-app purchase (Sandbox Apple ID; the app itself has no login):
 
 External services the reviewer will reach: Apple StoreKit, and RevenueCat to validate the receipt. The game itself is bundled in the app and plays with no network. Support contact: samayhuf@gmail.com (Samay Vashsht).
 
-Devices and OS tested: fill this in after the TestFlight pass on a physical iPhone. iPad is not a target (iPhone only); please still launch it in iPhone compatibility mode.
+Devices and OS tested: not recorded yet. This line must name the physical iPhone model and iOS version from the TestFlight pass, and note the iPad compatibility-mode check, before submission. iPad is not a target (iPhone only).
 
 ---
