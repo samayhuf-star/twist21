@@ -3,6 +3,27 @@ import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchase
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import { ENTITLEMENT_ID, PRODUCT_ID, RC_API_KEY_ANDROID, RC_API_KEY_IOS } from './config';
 
+
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelay = 1000): Promise<T> {
+  let lastError: any;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (e: any) {
+      lastError = e;
+      // Don't retry user cancellations or permanent errors
+      if (e?.userCancelled || e?.code === 'PURCHASE_CANCELLED' || e?.code === 'PRODUCT_NOT_AVAILABLE') {
+        throw e;
+      }
+      if (attempt < maxAttempts) {
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
 let configured = false;
 
 export function initPurchases(): boolean {
@@ -25,7 +46,7 @@ export function hasPremium(info: CustomerInfo | null | undefined): boolean {
 export async function getCustomerInfo(): Promise<CustomerInfo | null> {
   if (!configured) return null;
   try {
-    return await Purchases.getCustomerInfo();
+    return await withRetry(() => Purchases.getCustomerInfo());
   } catch {
     return null;
   }
@@ -43,7 +64,7 @@ export function onCustomerInfo(cb: (info: CustomerInfo) => void) {
 export async function getPremiumPackage(): Promise<PurchasesPackage | null> {
   if (!configured) return null;
   try {
-    const cur = (await Purchases.getOfferings()).current;
+    const cur = (await withRetry(() => Purchases.getOfferings())).current;
     if (!cur) return null;
     return (
       cur.lifetime ??
@@ -58,10 +79,10 @@ export async function getPremiumPackage(): Promise<PurchasesPackage | null> {
 
 export async function purchase(pkg: PurchasesPackage): Promise<boolean> {
   try {
-    const { customerInfo } = await Purchases.purchasePackage(pkg);
+    const { customerInfo } = await withRetry(() => Purchases.purchasePackage(pkg));
     return hasPremium(customerInfo);
   } catch (e: any) {
-    if (e?.userCancelled) return false;
+    if (e?.userCancelled || e?.code === 'PURCHASE_CANCELLED') return false;
     throw e;
   }
 }
