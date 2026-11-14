@@ -1,16 +1,18 @@
-# Twist 21 store listing (original copy)
+# Twist 21 – Store Listing
 
 **Name:** Twist 21
 **Subtitle (iOS, 30 max):** Blackjack with action cards
-**Category:** Games > Card (iOS) / Card (Google Play)
-**Price:** Free, one in-app purchase "Twist 21 Premium" (non-consumable, product ID `twist21_premium`, $2.99)
+**Category:** Games > Card
+**Price:** Free with optional Premium
+**Age Rating:** 17+
+
 **Support URL:** https://samayhuf-star.github.io/twist21/support/
 **Privacy URL:** https://samayhuf-star.github.io/twist21/privacy/
 **Marketing URL:** https://samayhuf-star.github.io/twist21/
 
-**Keywords (iOS, 100 max):** card game,21,twenty one,action cards,strategy,skip,swap,bluff,solo,offline
+**Keywords (iOS, 100 max):** card game,21,twenty one,action cards,strategy,skip,swap,bluff,solo,offline,17+
 
-**Short description (Google Play, 80 max):** Blackjack with action cards. Skip, swap, peek and bend the target.
+**Short description (Google Play):** Blackjack with action cards. Skip, swap, peek and bend the target. 17+.
 
 **Description**
 Hit. Stand. Then twist the table.
@@ -29,12 +31,13 @@ FREE
 - 3 matches a day
 - 5 action cards
 
-PREMIUM (one-time purchase, no subscription)
+PREMIUM
+- 7-day free trial
+- Lifetime access: $39.99
 - All 9 action cards
 - Unlimited matches
 - Live bust-chance meter
 
 No betting, no chips, no real-money play. No ads.
 
-**Apple age rating notes:** card game with no wagering. Answer "Simulated Gambling" honestly for your reading of the blackjack theme; the game has no betting, chips or payouts.
-**Review notes:** Premium is unlocked through StoreKit via RevenueCat. Use the sandbox tester account. Open the Premium screen from the "Go Premium" button; "Restore purchases" is on the same screen.
+**Age rating:** 17+ (simulated gambling theme, no real money)
