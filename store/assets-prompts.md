@@ -16,4 +16,4 @@ Use real game UI. Dark theme.
 **Notes:**
 - No real-money gambling imagery
 - Show the actual game UI
-- Premium price should match store ($2.99)
+- Listing screenshots must not show a price. The IAP review shot is separate and shows the lifetime price (US $39.99).

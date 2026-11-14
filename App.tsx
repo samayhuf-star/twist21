@@ -1,21 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView as RNWebView, WebViewMessageEvent } from 'react-native-webview';
 import gameHtml from './src/gameHtml';
-import { GAME_BASE_URL } from './src/config';
-import {
-  getCustomerInfo,
-  getPremiumPackage,
-  hasPremium,
-  initPurchases,
-  onCustomerInfo,
-  presentCustomerCenter,
-  presentPaywall,
-  purchase,
-  restore,
-} from './src/purchases';
+import { usePremiumPurchases } from './src/purchases';
 
 // react-native-webview 14 ships props typings that collapse to `never` under React 19 types.
 const WebView = RNWebView as unknown as React.ComponentType<any>;
@@ -25,23 +14,18 @@ function Game() {
   const insets = useSafeAreaInsets();
   const web = useRef<{ injectJavaScript: (js: string) => void } | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const iap = usePremiumPurchases();
 
   const run = (js: string) => web.current?.injectJavaScript(`${js}; true;`);
   const pushPremium = (on: boolean) => run(`window.T21 && window.T21.setPremium(${on})`);
   const pushPrice = (price: string) => run(`window.T21 && window.T21.setPrice(${JSON.stringify(price)})`);
 
-  const sync = useCallback(async () => {
-    if (!initPurchases()) return;
-    if (hasPremium(await getCustomerInfo())) pushPremium(true);
-    const pkg = await getPremiumPackage();
-    if (pkg) pushPrice(pkg.product.priceString);
-  }, []);
-
   useEffect(() => {
     if (!loaded) return;
-    sync();
-    return onCustomerInfo((info) => pushPremium(hasPremium(info)));
-  }, [loaded, sync]);
+    pushPremium(iap.owned);
+    pushPrice(iap.price);
+    run(`window.T21 && window.T21.setStoreReady(${iap.productReady})`);
+  }, [loaded, iap.owned, iap.price, iap.productReady]);
 
   const onMessage = async (e: WebViewMessageEvent) => {
     let msg: { type?: string; url?: string };
@@ -52,46 +36,30 @@ function Game() {
     }
     if (msg.type === 'link' && typeof msg.url === 'string' && msg.url.startsWith('https://')) {
       Linking.openURL(msg.url);
-    } else if (msg.type === 'paywall') {
-      if (!initPurchases()) {
-        Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
-        return;
+      return;
+    }
+    if (msg.type === 'purchase') {
+      const result = await iap.purchase();
+      if (result.outcome === 'purchased') pushPremium(true);
+      else if (result.outcome === 'unavailable') {
+        Alert.alert(
+          'Premium',
+          'Twist 21 Premium could not be loaded from the App Store. Please try again in a moment.'
+        );
+      } else if (result.outcome === 'failed') {
+        Alert.alert('Purchase failed', result.message ?? 'Please try again.');
       }
+      return;
+    }
+    if (msg.type === 'restore') {
       try {
-        if (await presentPaywall()) pushPremium(true);
-      } catch (err: any) {
-        Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
-      }
-    } else if (msg.type === 'manage') {
-      if (!initPurchases()) return;
-      try {
-        await presentCustomerCenter();
-        pushPremium(hasPremium(await getCustomerInfo()));
-      } catch {
-        /* Customer Center unavailable: nothing to do */
-      }
-    } else if (msg.type === 'purchase') {
-      if (!initPurchases()) {
-        Alert.alert('Purchases unavailable', 'Store purchases are not set up in this build.');
-        return;
-      }
-      const pkg = await getPremiumPackage();
-      if (!pkg) {
-        Alert.alert('Premium unavailable', 'Premium cannot be loaded right now. Please try again in a moment.');
-        return;
-      }
-      try {
-        if (await purchase(pkg)) pushPremium(true);
-      } catch (err: any) {
-        Alert.alert('Purchase failed', err?.message ?? 'Please try again.');
-      }
-    } else if (msg.type === 'restore') {
-      if (!initPurchases()) return;
-      try {
-        if (await restore()) pushPremium(true);
+        if (await iap.restore()) pushPremium(true);
         else Alert.alert('Nothing to restore', 'No earlier Premium purchase was found for this store account.');
-      } catch (err: any) {
-        Alert.alert('Restore failed', err?.message ?? 'Please try again.');
+      } catch (err) {
+        Alert.alert(
+          'Restore failed',
+          err instanceof Error ? err.message : 'Please try again.'
+        );
       }
     }
   };
@@ -101,7 +69,7 @@ function Game() {
       <StatusBar style="light" />
       <WebView
         ref={web}
-        source={{ html: gameHtml, baseUrl: GAME_BASE_URL }}
+        source={{ html: gameHtml }}
         style={styles.web}
         originWhitelist={['*']}
         javaScriptEnabled
@@ -111,8 +79,8 @@ function Game() {
         setSupportMultipleWindows={false}
         onLoadEnd={() => setLoaded(true)}
         onShouldStartLoadWithRequest={(req: { url: string }) => {
-          // Keep the game in the WebView; anything else opens in the system browser.
-          if (req.url === 'about:blank' || req.url.startsWith(GAME_BASE_URL)) return true;
+          // The game is the bundled HTML. Anything else opens in the system browser.
+          if (req.url === 'about:blank') return true;
           if (req.url.startsWith('https://')) Linking.openURL(req.url);
           return false;
         }}

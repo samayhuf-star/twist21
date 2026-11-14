@@ -1,20 +1,17 @@
-// Central product config. Change here only.
-export const ENTITLEMENT_ID = 'premium';
+// The only product this version sells. It already exists in App Store Connect.
+export const PRODUCT_ID = 'twist21_premium';
 
-// Product IDs — must match App Store Connect and Google Play
-export const PRODUCT_ID_LIFETIME = 'twist21_lifetime';
-export const PRODUCT_ID_MONTHLY = 'twist21_monthly'; // optional monthly if added later
+export const PRIVACY_URL = 'https://samayhuf-star.github.io/app-legal/twist21/privacy/';
+export const TERMS_URL = 'https://samayhuf-star.github.io/app-legal/twist21/terms/';
+export const SUPPORT_URL = 'https://samayhuf-star.github.io/app-legal/twist21/support/';
 
-// RevenueCat PUBLIC SDK keys (safe to ship in the app). Set as EAS env vars before building.
-export const RC_API_KEY_IOS = process.env.EXPO_PUBLIC_RC_IOS_KEY ?? 'appl_REPLACE_ME';
-export const RC_API_KEY_ANDROID = process.env.EXPO_PUBLIC_RC_ANDROID_KEY ?? 'goog_REPLACE_ME';
-
-// The game page is hosted by GitHub Pages as well, so WebView storage gets a stable https origin.
-export const GAME_BASE_URL = 'https://samayhuf-star.github.io/twist21/';
-
-// Standard pricing
+// One-time non-consumable. The paywall shows StoreKit's localized price when the product loads.
+// A non-consumable cannot include a free trial, so this version does not offer one.
 export const PRICING = {
-  trialDays: 7,
   lifetimePrice: 39.99,
-  lifetimeProductId: PRODUCT_ID_LIFETIME,
+  productId: PRODUCT_ID,
 };
+
+export function lifetimePriceLabel(): string {
+  return `$${PRICING.lifetimePrice.toFixed(2)}`;
+}
