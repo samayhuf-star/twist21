@@ -1,0 +1,190 @@
+{
+ "group": {
+  "id": "22572739",
+  "ref": "Chips Pass",
+  "locs": [
+   {
+    "name": "Chips Pass",
+    "customAppName": "Twist 21",
+    "locale": "en-US",
+    "state": "PREPARE_FOR_SUBMISSION"
+   }
+  ]
+ },
+ "twist21_chipspass_monthly": {
+  "id": "6833970342",
+  "state": "READY_TO_SUBMIT",
+  "period": "ONE_MONTH",
+  "groupLevel": 2,
+  "usa": "2.99",
+  "price_territories": 175,
+  "avail_territories": 175,
+  "newTerr": true,
+  "intro_offers": 0,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "Chips Pass Monthly",
+    "No ads, 2x daily bonus, 10,000 virtual chips a month",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_chipspass_yearly": {
+  "id": "6833970460",
+  "state": "READY_TO_SUBMIT",
+  "period": "ONE_YEAR",
+  "groupLevel": 1,
+  "usa": "19.99",
+  "price_territories": 175,
+  "avail_territories": 175,
+  "newTerr": true,
+  "intro_offers": 0,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "Chips Pass Yearly",
+    "No ads, 2x daily bonus, 10,000 virtual chips a month",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_chips_18k": {
+  "id": "6833973935",
+  "type": "CONSUMABLE",
+  "state": "READY_TO_SUBMIT",
+  "base": "USA",
+  "usa": [
+   "2.99"
+  ],
+  "auto_total": 174,
+  "avail_territories": 175,
+  "newTerr": true,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "18,000 Chips",
+    "18,000 virtual game chips. No cash value.",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_chips_200k": {
+  "id": "6833974282",
+  "type": "CONSUMABLE",
+  "state": "READY_TO_SUBMIT",
+  "base": "USA",
+  "usa": [
+   "19.99"
+  ],
+  "auto_total": 174,
+  "avail_territories": 175,
+  "newTerr": true,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "200,000 Chips",
+    "200,000 virtual game chips. No cash value.",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_chips_35k": {
+  "id": "6833974137",
+  "type": "CONSUMABLE",
+  "state": "READY_TO_SUBMIT",
+  "base": "USA",
+  "usa": [
+   "4.99"
+  ],
+  "auto_total": 174,
+  "avail_territories": 175,
+  "newTerr": true,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "35,000 Chips",
+    "35,000 virtual game chips. No cash value.",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_chips_5k": {
+  "id": "6833973749",
+  "type": "CONSUMABLE",
+  "state": "READY_TO_SUBMIT",
+  "base": "USA",
+  "usa": [
+   "0.99"
+  ],
+  "auto_total": 174,
+  "avail_territories": 175,
+  "newTerr": true,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "5,000 Chips",
+    "5,000 virtual game chips. No cash value.",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_chips_80k": {
+  "id": "6833974045",
+  "type": "CONSUMABLE",
+  "state": "READY_TO_SUBMIT",
+  "base": "USA",
+  "usa": [
+   "9.99"
+  ],
+  "auto_total": 174,
+  "avail_territories": 175,
+  "newTerr": true,
+  "shot": "COMPLETE",
+  "locs": [
+   [
+    "en-US",
+    "80,000 Chips",
+    "80,000 virtual game chips. No cash value.",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "twist21_premium": {
+  "id": "6833334830",
+  "type": "NON_CONSUMABLE",
+  "state": "MISSING_METADATA",
+  "base": "USA",
+  "usa": [
+   "2.99"
+  ],
+  "auto_total": 174,
+  "avail_territories": 0,
+  "newTerr": null,
+  "shot": null,
+  "locs": [
+   [
+    "en-US",
+    "Twist 21 Premium",
+    "All 9 action cards and unlimited matches. One-time.",
+    "PREPARE_FOR_SUBMISSION"
+   ]
+  ]
+ },
+ "app_availability": {
+  "ok": true,
+  "status": 200,
+  "id": "6833334755",
+  "attrs": {
+   "availableInNewTerritories": true
+  },
+  "territories": 175,
+  "available": 175
+ }
+}
