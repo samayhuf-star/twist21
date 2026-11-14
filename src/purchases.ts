@@ -1,120 +1,163 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
-import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
-import RevenueCatUI from 'react-native-purchases-ui';
 import {
-  ENTITLEMENT_ID,
-  isRealRcKey,
-  PRODUCT_ID_LIFETIME,
-  RC_API_KEY_ANDROID,
-  RC_API_KEY_IOS,
-} from './config';
+  getAvailablePurchases,
+  isUserCancelledError,
+  useIAP,
+  type Purchase,
+} from 'expo-iap';
 
-async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelay = 1000): Promise<T> {
-  let lastError: unknown;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fn();
-    } catch (e: unknown) {
-      lastError = e;
-      const err = e as { userCancelled?: boolean; code?: string };
-      // Don't retry user cancellations or permanent errors
-      if (err?.userCancelled || err?.code === 'PURCHASE_CANCELLED' || err?.code === 'PRODUCT_NOT_AVAILABLE') {
-        throw e;
+import { lifetimePriceLabel, PRODUCT_ID } from './config';
+import { loadOwned, saveOwned } from './entitlement';
+
+export type PurchaseOutcome = 'purchased' | 'cancelled' | 'unavailable' | 'failed';
+
+export type PurchaseResult = {
+  outcome: PurchaseOutcome;
+  message: string | null;
+};
+
+function ownsPremium(purchase: Purchase): boolean {
+  return purchase.productId === PRODUCT_ID && purchase.purchaseState !== 'pending';
+}
+
+/**
+ * StoreKit 2 via expo-iap. One non-consumable, twist21_premium.
+ * The same purchase / restore shape as the abs-challenge app: useIAP, finish the
+ * transaction, then keep the unlock in local storage.
+ */
+export function usePremiumPurchases() {
+  const [owned, setOwned] = useState(false);
+  const [price, setPrice] = useState(lifetimePriceLabel);
+  const [productReady, setProductReady] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const errorRef = useRef<string | null>(null);
+  const pending = useRef<((result: PurchaseResult) => void) | null>(null);
+
+  const note = useCallback((message: string | null) => {
+    errorRef.current = message;
+    setLastError(message);
+  }, []);
+
+  const settle = useCallback((outcome: PurchaseOutcome) => {
+    const resolve = pending.current;
+    pending.current = null;
+    resolve?.({ outcome, message: errorRef.current });
+  }, []);
+
+  const grant = useCallback(async () => {
+    await saveOwned();
+    setOwned(true);
+  }, []);
+
+  const {
+    connected,
+    products,
+    fetchProducts,
+    requestPurchase,
+    finishTransaction,
+    restorePurchases,
+    getAvailablePurchases: refreshOwned,
+  } = useIAP({
+    onPurchaseSuccess: (purchase) => {
+      void (async () => {
+        try {
+          if (!ownsPremium(purchase)) {
+            note('The store returned a different product.');
+            settle('failed');
+            return;
+          }
+          await finishTransaction({ purchase, isConsumable: false });
+          await grant();
+          settle('purchased');
+        } catch (err) {
+          note(
+            err instanceof Error
+              ? err.message
+              : 'The purchase finished in the store but could not be saved on this device. Try Restore.'
+          );
+          settle('failed');
+        }
+      })();
+    },
+    onPurchaseError: (error) => {
+      if (isUserCancelledError(error)) {
+        settle('cancelled');
+        return;
       }
-      if (attempt < maxAttempts) {
-        const delay = baseDelay * Math.pow(2, attempt - 1);
-        await new Promise((r) => setTimeout(r, delay));
+      note(error.message || 'Purchase failed. Please try again.');
+      settle('failed');
+    },
+    onError: (error) => {
+      note(error.message || 'The App Store could not be reached.');
+    },
+  });
+
+  useEffect(() => {
+    void loadOwned().then((on) => {
+      if (on) setOwned(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!connected || Platform.OS === 'web') return;
+    void (async () => {
+      try {
+        await fetchProducts({ skus: [PRODUCT_ID], type: 'in-app' });
+        await refreshOwned();
+      } catch (err) {
+        setProductReady(false);
+        note(
+          err instanceof Error
+            ? err.message
+            : 'Twist 21 Premium could not be loaded from the App Store.'
+        );
       }
+    })();
+  }, [connected, fetchProducts, refreshOwned]);
+
+  useEffect(() => {
+    const item = products.find((product) => product.id === PRODUCT_ID);
+    if (!item) return;
+    setProductReady(true);
+    if (item.displayPrice) setPrice(item.displayPrice);
+  }, [products]);
+
+  const purchase = useCallback(async (): Promise<PurchaseResult> => {
+    note(null);
+    if (Platform.OS === 'web' || !connected || !productReady) {
+      return { outcome: 'unavailable', message: null };
     }
-  }
-  throw lastError;
-}
+    return new Promise((resolve) => {
+      pending.current = resolve;
+      void requestPurchase({
+        request: {
+          apple: { sku: PRODUCT_ID },
+          google: { skus: [PRODUCT_ID] },
+        },
+        type: 'in-app',
+      }).catch((err: unknown) => {
+        if (isUserCancelledError(err)) {
+          settle('cancelled');
+          return;
+        }
+        note(err instanceof Error ? err.message : 'Purchase failed. Please try again.');
+        settle('failed');
+      });
+    });
+  }, [connected, note, productReady, requestPurchase, settle]);
 
-let configured = false;
+  const restore = useCallback(async (): Promise<boolean> => {
+    note(null);
+    if (Platform.OS === 'web' || !connected) {
+      throw new Error('The App Store could not be reached. Please try again in a moment.');
+    }
+    await restorePurchases();
+    const purchases = await getAvailablePurchases();
+    if (!purchases.some(ownsPremium)) return false;
+    await grant();
+    return true;
+  }, [connected, grant, restorePurchases]);
 
-export function purchasesReady(): boolean {
-  return configured;
-}
-
-export function initPurchases(): boolean {
-  if (configured) return true;
-  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return false;
-  const platform = Platform.OS;
-  const key = platform === 'ios' ? RC_API_KEY_IOS : RC_API_KEY_ANDROID;
-  if (!isRealRcKey(key, platform)) return false;
-  if (__DEV__) Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-  Purchases.configure({ apiKey: key });
-  configured = true;
-  // Attribution + app attributes for RevenueCat charts, integrations and targeting.
-  if (Platform.OS === 'ios') Purchases.enableAdServicesAttributionTokenCollection();
-  Purchases.setAttributes({ app: 'twist21', platform: Platform.OS });
-  return true;
-}
-
-export function hasPremium(info: CustomerInfo | null | undefined): boolean {
-  return !!info?.entitlements.active[ENTITLEMENT_ID];
-}
-
-export async function getCustomerInfo(): Promise<CustomerInfo | null> {
-  if (!configured) return null;
-  try {
-    return await withRetry(() => Purchases.getCustomerInfo());
-  } catch {
-    return null;
-  }
-}
-
-export function onCustomerInfo(cb: (info: CustomerInfo) => void) {
-  if (!configured) return () => {};
-  Purchases.addCustomerInfoUpdateListener(cb);
-  return () => {
-    Purchases.removeCustomerInfoUpdateListener(cb);
-  };
-}
-
-function isLifetimeProduct(pkg: PurchasesPackage): boolean {
-  return pkg.product.identifier === PRODUCT_ID_LIFETIME;
-}
-
-/** The lifetime Premium package. Never falls through to a different product. */
-export async function getPremiumPackage(): Promise<PurchasesPackage | null> {
-  if (!configured) return null;
-  try {
-    const cur = (await withRetry(() => Purchases.getOfferings())).current;
-    if (!cur) return null;
-    const match = cur.availablePackages.find(isLifetimeProduct);
-    if (match) return match;
-    if (cur.lifetime && isLifetimeProduct(cur.lifetime)) return cur.lifetime;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export async function purchase(pkg: PurchasesPackage): Promise<boolean> {
-  try {
-    const { customerInfo } = await withRetry(() => Purchases.purchasePackage(pkg));
-    return hasPremium(customerInfo);
-  } catch (e: unknown) {
-    const err = e as { userCancelled?: boolean; code?: string };
-    if (err?.userCancelled || err?.code === 'PURCHASE_CANCELLED') return false;
-    throw e;
-  }
-}
-
-export async function restore(): Promise<boolean> {
-  if (!configured) return false;
-  return hasPremium(await Purchases.restorePurchases());
-}
-
-/** RevenueCat Customer Center: restore, support, purchase management. */
-export async function presentCustomerCenter(): Promise<void> {
-  if (!configured) return;
-  await RevenueCatUI.presentCustomerCenter();
-}
-
-/** Record game progress as subscriber attributes (feeds RevenueCat targeting and integrations). */
-export function trackProgress(attrs: Record<string, string | null>) {
-  if (!configured) return;
-  Purchases.setAttributes(attrs);
+  return { owned, price, productReady, lastError, purchase, restore };
 }

@@ -11,7 +11,7 @@
     "ios": {
       "bundleIdentifier": "com.samay.twist21",
       "supportsTablet": false,
-      "buildNumber": "1",
+      "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -50,7 +50,8 @@
           "imageWidth": 200
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-iap"
     ],
     "owner": "krosz",
     "extra": {

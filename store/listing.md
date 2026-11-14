@@ -14,10 +14,10 @@ Paste these fields into App Store Connect. Do not put a price, a discount, or a 
 **Version:** 1.0.0
 **License agreement:** Apple’s standard EULA. Do not paste a custom EULA.
 
-**Support URL:** https://samayhuf-star.github.io/twist21/support/
-**Privacy Policy URL:** https://samayhuf-star.github.io/twist21/privacy/
-**Marketing URL:** https://samayhuf-star.github.io/twist21/
-**Terms of Use URL** (linked in the description and on the paywall): https://samayhuf-star.github.io/twist21/terms/
+**Support URL:** https://samayhuf-star.github.io/app-legal/twist21/support/
+**Privacy Policy URL:** https://samayhuf-star.github.io/app-legal/twist21/privacy/
+**Marketing URL:** https://samayhuf-star.github.io/app-legal/twist21/
+**Terms of Use URL** (linked in the description and on the paywall): https://samayhuf-star.github.io/app-legal/twist21/terms/
 
 **Keywords (100 characters):** card game,21,twenty one,action cards,strategy,skip,swap,bluff,solo,offline
 
@@ -45,30 +45,29 @@ FREE
 - 5 action cards
 
 TWIST 21 PREMIUM
-One-time purchase, product ID twist21_lifetime. Not a subscription, and it does not renew. There is no free trial. The full price is shown on the purchase screen before you confirm (US $39.99). Premium unlocks:
+One-time purchase, product ID twist21_premium, display name Twist 21 Premium. Not a subscription, and it does not renew. There is no free trial. The full price is shown on the purchase screen before you confirm (US $39.99). Premium unlocks:
 - All 9 action cards
 - Unlimited matches
 - The live bust-chance meter
 
 No betting, no chips, and no real-money play. No ads. No account.
 
-Terms of Use (Apple Standard EULA): https://samayhuf-star.github.io/twist21/terms/
-Privacy Policy: https://samayhuf-star.github.io/twist21/privacy/
-Support: https://samayhuf-star.github.io/twist21/support/
+Terms of Use (Apple Standard EULA): https://samayhuf-star.github.io/app-legal/twist21/terms/
+Privacy Policy: https://samayhuf-star.github.io/app-legal/twist21/privacy/
+Support: https://samayhuf-star.github.io/app-legal/twist21/support/
 
-**In-app purchase to create and submit with this version**
+**In-app purchase to submit with this version**
 
-The binary sells only this product. The older non-consumable `twist21_premium` ($2.99, missing metadata) is not in this build. Do not attach it to the version.
+The binary sells only this product. It already exists in App Store Connect. Set its price to US $39.99 and its display name to Twist 21 Premium. Product IDs cannot be renamed.
 
 - Type: Non-Consumable
-- Product ID: `twist21_lifetime`
+- Product ID: `twist21_premium`
 - Reference name: Twist 21 Premium
 - Display name (en-US): Twist 21 Premium
 - Description (en-US): Lifetime unlock of all 9 action cards, unlimited matches, and the bust-chance meter. One-time purchase. No subscription.
 - Price: USD 39.99 (match the paywall; the app then shows StoreKit’s localized price)
 - Introductory offer: none
 - Review screenshot: `store/iap-review-paywall-1290x2796.png` (paywall only — do not use it as a listing screenshot, because it shows a price)
-- Entitlement in RevenueCat: `premium`, on the current offering’s lifetime package
 
 **Listing screenshots**
 
@@ -76,10 +75,8 @@ Five PNG files in `store/screenshots/`, each 1290×2796, no transparency. All fi
 
 **App Privacy (confirm in App Store Connect)**
 
-- Purchases / product interaction: collected by RevenueCat to unlock and restore Premium. Not linked to the user’s identity. Used for app functionality.
-- User ID: RevenueCat’s anonymous app user ID. Not linked. App functionality only.
+- Data Not Collected. Apple processes the payment. The app stores the unlock on the device and does not receive your name, email, or payment card.
 - No tracking. No advertising data. No contact info, location, photos, or health data.
-- If you run Apple Search Ads, the app can also send Apple’s install attribution token to RevenueCat. Say so here if you turn that on.
 
 **Age rating questionnaire**
 
