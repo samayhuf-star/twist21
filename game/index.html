@@ -298,6 +298,30 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
 .acard { flex: 1 1 0; max-width: 50%; min-height: 0 !important; max-height: 96px; }
 .hand .empty { margin: 0; font-size: 13px; color: var(--muted); }
 @media (max-height: 700px) { .tip, .bar { display: none; } .feed li:not(.new) { display: none; } .acard { max-height: 80px; } }
+
+/* ---- v4: casino table with a dealer ---- */
+body { background: radial-gradient(900px 520px at 50% 38%, #1d6a45 0%, #114a30 45%, #0a2a1c 100%), #0a2a1c; }
+body.th-midnight { background: radial-gradient(1200px 600px at 50% -10%, #2a2670 0%, transparent 60%), var(--ink); }
+body.th-wine { background: radial-gradient(900px 520px at 50% 38%, #6b2147 0%, #3d1530 50%, #1d0a18 100%); }
+body.th-arctic { background: radial-gradient(900px 520px at 50% 38%, #2a6a90 0%, #12334a 50%, #0a1c2a 100%); }
+.wrap { position: relative; }
+.dealerbar { display: flex; align-items: center; gap: 10px; flex: none; background: rgba(0,0,0,.28); border: 1px solid rgba(255,210,63,.3); border-radius: 14px; padding: 6px 10px; }
+.dealer { flex: none; width: 54px; text-align: center; }
+.dealer svg { width: 48px; height: 48px; display: block; margin: 0 auto; overflow: visible; }
+.dealer small { display: block; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--twist); font-weight: 800; line-height: 1; }
+.dealer.dealing .flick { animation: flick .3s ease-in-out 6 alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes flick { to { transform: translate(-22px, -6px) rotate(-25deg); } }
+.dealtext { flex: 1; min-width: 0; }
+.shoe { flex: none; position: relative; width: 30px; height: 42px; }
+.shoe i { position: absolute; inset: 0; border-radius: 5px; background: linear-gradient(135deg,#3b3a8f,#17152e); border: 1px solid var(--paper); }
+.shoe i:nth-child(1) { transform: translate(-4px, 3px); } .shoe i:nth-child(2) { transform: translate(-2px, 1.5px); }
+.seat { background: rgba(6, 30, 18, .55); border-color: rgba(255,210,63,.28); }
+.seat.is-turn { border-color: var(--twist); }
+body.th-midnight .seat { background: var(--table); border-color: var(--edge); }
+@keyframes deal { from { transform: translate(0, -170px) scale(.45) rotate(-18deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.deal { animation: deal .42s cubic-bezier(.2,.8,.3,1) both; }
+@media (max-height: 700px) { .dealer small { display: none; } .dealer svg { width: 40px; height: 40px; } .dealer { width: 40px; } .shoe { height: 34px; width: 24px; } }
+@media (prefers-reduced-motion: reduce) { .dealer.dealing .flick { animation: none; } }
 </style>
 </head>
 <body>
@@ -314,9 +338,22 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
   <main>
     <div class="opps" id="opps"></div>
   </main>
-  <div class="feedbox" aria-live="polite">
-    <p id="status"></p>
-    <ul class="feed" id="feed"></ul>
+  <div class="dealerbar" aria-live="polite">
+    <div class="dealer" id="dealer" aria-hidden="true">
+      <svg viewBox="0 0 64 64" role="img" aria-label="Dealer">
+        <rect x="14" y="40" width="36" height="24" rx="10" fill="#1b1b2e"/>
+        <path d="M32 42l-8 22h16z" fill="#f3eee4"/>
+        <path d="M26 46l6 4 6-4-3-3h-6z" fill="#b3261e"/>
+        <circle cx="32" cy="24" r="14" fill="#e8b98a"/>
+        <path d="M18 22c0-10 6-14 14-14s14 4 14 14c-3-5-8-7-14-7s-11 2-14 7z" fill="#2a1c12"/>
+        <circle cx="27" cy="25" r="1.6" fill="#17152e"/><circle cx="37" cy="25" r="1.6" fill="#17152e"/>
+        <path d="M27 31c2.5 2 7.5 2 10 0" stroke="#17152e" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <rect x="45" y="44" width="12" height="9" rx="2" fill="#fff" stroke="#b9a6ff" class="flick"/>
+      </svg>
+      <small>Dealer</small>
+    </div>
+    <div class="dealtext"><p id="status"></p><ul class="feed" id="feed"></ul></div>
+    <div class="shoe" aria-hidden="true"><i></i><i></i><i></i></div>
   </div>
   <div class="you" id="you"></div>
 </div>
@@ -356,8 +393,8 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
     { id: 'gold', name: 'Gold Foil', price: 6000 }
   ];
   var THEMES = [
-    { id: 'midnight', name: 'Midnight', price: 0, sw: '#1a1840' },
-    { id: 'felt', name: 'Green Felt', price: 3000, sw: '#12402c' },
+    { id: 'felt', name: 'Casino Felt', price: 0, sw: '#12402c' },
+    { id: 'midnight', name: 'Midnight', price: 3000, sw: '#1a1840' },
     { id: 'wine', name: 'Wine', price: 3000, sw: '#3d1530' },
     { id: 'arctic', name: 'Arctic', price: 6000, sw: '#12334a' }
   ];
@@ -385,7 +422,7 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
   var SAVE_KEY = 'twist21.save2';
   function freshStats() { return { matches: 0, wins: 0, rounds: 0, roundWins: 0, streak: 0, best: 0, busts: 0, exact: 0, biggest: 0, cards: {} }; }
   function defaults() {
-    return { chips: START_CHIPS, streak: 0, last: '', owned: {}, back: 'classic', theme: 'midnight', mute: false, tipsDone: false, txs: [], stats: freshStats() };
+    return { chips: START_CHIPS, streak: 0, last: '', owned: {}, back: 'classic', theme: 'felt', mute: false, tipsDone: false, txs: [], stats: freshStats() };
   }
   function load() {
     var d = defaults(), o = null;
@@ -503,7 +540,7 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
     phase: 'intro', humanTurn: false, acted: false, pending: null, log: [],
     seen: new Set(), roundEnded: false, flipped: false, uid: 0,
     result: null, champ: null, finish: null, fast: false, autoHuman: false, overlayKey: '',
-    screen: null, shopTab: 'chips', oddsShown: false, shake: [], lastOverlay: null, toast: ''
+    dealing: false, dealN: 0, screen: null, shopTab: 'chips', oddsShown: false, shake: [], lastOverlay: null, toast: ''
   };
   function kinds() { return BASE.concat(EXTRA.filter(function (k) { return owned('k_' + k); })); }
 
@@ -917,8 +954,13 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
 
   async function beginRound() {
     S.phase = 'play';
+    S.seen = new Set();
+    S.dealing = true;
+    if (hasDom && !S.fast) { for (var i = 0; i < 9; i++) (function (n) { setTimeout(function () { sfx('flip'); }, n * 110); })(i); }
     render();
-    await sleep(500);
+    await sleep(1150);
+    S.dealing = false;
+    render();
     await runRound();
   }
   function nextRound() {
@@ -950,10 +992,11 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
   // ---------- rendering ----------
   function cardHTML(c, o) {
     var deal = S.seen.has(c.id) ? '' : ' deal';
-    if (o.down) return '<div class="card back bk-' + G.back + deal + '" role="img" aria-label="Face-down card"><b>21</b></div>';
+    var dly = deal && S.dealing ? ' style="animation-delay:' + (S.dealN++ * 0.11).toFixed(2) + 's"' : '';
+    if (o.down) return '<div class="card back bk-' + G.back + deal + '"' + dly + ' role="img" aria-label="Face-down card"><b>21</b></div>';
     var band = c.v <= 3 ? 'lo' : c.v <= 7 ? 'mid' : 'hi';
     return '<div class="card num ' + band + deal + (o.flip ? ' flip' : '') + (o.peeked ? ' peeked' : '') + (o.mine ? ' mine' : '') +
-      '" role="img" aria-label="Card ' + c.v + '"><b>' + c.v + '</b><i>' + c.v + '</i></div>';
+      '"' + dly + ' role="img" aria-label="Card ' + c.v + '"><b>' + c.v + '</b><i>' + c.v + '</i></div>';
   }
 
   function chips(p, i) {
@@ -1020,8 +1063,9 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
   }
 
   function statusText() {
-    if (S.phase === 'intro') return 'Ready when you are.';
-    if (S.roundEnded) return 'Cards revealed.';
+    if (S.phase === 'intro') return 'Dealer: take a seat. Ready when you are.';
+    if (S.dealing) return 'Dealer: shuffling and dealing…';
+    if (S.roundEnded) return S.result ? 'Dealer: ' + S.result.msg : 'Dealer: cards up.';
     if (S.pending) return 'Pick a target for ' + ACTIONS[S.pending.k].name + '.';
     if (S.humanTurn) return S.acted ? 'Action played. Now Hit or Stand.' : 'Your turn. Play one action card if you like, then Hit or Stand.';
     var p = S.players[S.cur];
@@ -1188,6 +1232,7 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
   function render() {
     var me = S.players[0];
     if (!hasDom) return;
+    S.dealN = 0;
     var oppsHTML = S.players.map(function (p, i) { return i ? seatHTML(p, i) : ''; }).join('');
     var tip = tipText();
     var youHTML = (tip ? '<p class="tip">' + tip + '</p>' : '') + seatHTML(me, 0) + handHTML(me) + controlsHTML(me);
@@ -1199,6 +1244,7 @@ body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arct
     $('#you').innerHTML = youHTML;
     $('#feed').innerHTML = feed;
     $('#status').textContent = statusText();
+    $('#dealer').classList.toggle('dealing', S.dealing);
     $('#meta').textContent = 'Round ' + S.round + ' · ' + order;
     $('#chipsN').textContent = fmt(G.chips);
     document.body.className = 'th-' + G.theme;
