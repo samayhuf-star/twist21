@@ -7,7 +7,7 @@ Model: free to play (all 9 action cards, unlimited matches). Chips are the only 
 - Chip balance, daily bonus, stats and cosmetics live in the game's local storage.
 - "Get chips" posts `paywall` to the app, which presents the RevenueCat paywall (`src/purchases.ts`). New RevenueCat transactions are sent back with `window.T21.chipsPurchased(productId, txId)`; the game de-duplicates by transaction id.
 - Haptics: the game posts `haptic`, the app plays them with expo-haptics.
-- RevenueCat key: `EXPO_PUBLIC_REVENUECAT_IOS_KEY` (must start with `appl_`, never `test_`).
+- RevenueCat key: `EXPO_PUBLIC_RC_IOS_KEY` (must start with `appl_`, never `test_`).
 
 ## Before a store build
 1. RevenueCat: add the five products, one offering marked current, a paywall on it.

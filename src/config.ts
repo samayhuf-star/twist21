@@ -2,9 +2,9 @@ export const PRIVACY_URL = 'https://samayhuf-star.github.io/app-legal/twist21/pr
 export const TERMS_URL = 'https://samayhuf-star.github.io/app-legal/twist21/terms/';
 export const SUPPORT_URL = 'https://samayhuf-star.github.io/app-legal/twist21/support/';
 
-// RevenueCat public SDK key for iOS (starts with appl_). Set EXPO_PUBLIC_REVENUECAT_IOS_KEY
+// RevenueCat public SDK key for iOS (starts with appl_). Set EXPO_PUBLIC_RC_IOS_KEY
 // in EAS env. A test_ key must never ship in a store build.
-export const REVENUECAT_IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
+export const REVENUECAT_IOS_KEY = process.env.EXPO_PUBLIC_RC_IOS_KEY ?? '';
 
 // Five consumable chip packs. Twist 21 is free to play; chips are the only purchase.
 export const CHIP_PACKS: Record<string, number> = {

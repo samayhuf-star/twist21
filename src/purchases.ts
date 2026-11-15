@@ -62,6 +62,11 @@ export function useChipPurchases(onGrants: (grants: ChipGrant[]) => void, onPric
   const showPaywall = useCallback(async (): Promise<PaywallOutcome> => {
     if (!ready) return 'unavailable';
     try {
+      // Only show a paywall that actually sells chip packs. If the current offering holds anything
+      // else (for example the retired Premium), do not let anyone pay for something the game ignores.
+      const offerings = await Purchases.getOfferings();
+      const sellsChips = (offerings.current?.availablePackages ?? []).some((p) => p.product.identifier in CHIP_PACKS);
+      if (!sellsChips) return 'unavailable';
       const result = await RevenueCatUI.presentPaywall();
       if (result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED) {
         cb.current.onGrants(grantsFrom(await Purchases.getCustomerInfo()));
