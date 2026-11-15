@@ -339,6 +339,25 @@ body.th-midnight .oval { background: radial-gradient(ellipse at 50% 35%, #2f2b78
 body.th-wine .oval { background: radial-gradient(ellipse at 50% 35%, #7a2650 0%, #4a1838 60%, #260e1e 100%) padding-box, linear-gradient(135deg, #8a5a2b, #4a2810 45%, #9b6a35 70%, #3a1e0c) border-box; }
 body.th-arctic .oval { background: radial-gradient(ellipse at 50% 35%, #2f7aa0 0%, #1a4560 60%, #0c2536 100%) padding-box, linear-gradient(135deg, #8a5a2b, #4a2810 45%, #9b6a35 70%, #3a1e0c) border-box; }
 @media (max-height: 700px) { .oval { padding: 8px 20px 22px; border-width: 7px; } .oval::before { inset: 4px; } .oval { gap: 4px; } }
+
+/* ---- v6: every player seated around the table ---- */
+.oval { border-radius: 50% / 17%; padding: 12px 20px 26px; gap: 10px; }
+.oval::before { border-radius: 50% / 17%; }
+.opps { padding: 0 2%; }
+.opps .seat:first-child { margin-top: 10px; } .opps .seat:last-child { margin-top: 10px; }
+.meseat { position: relative; z-index: 1; --cw: 48px; --ch: 68px; width: 84%; margin: 0 auto; }
+.meseat .seat { padding: 8px 10px; border-radius: 26px 26px 14px 14px; }
+.meseat .seat-head { margin-bottom: 6px; gap: 6px; }
+.meseat .seat-total { font-size: 20px; }
+.meseat .cards { gap: 6px; min-height: var(--ch); }
+.you { margin-top: 0; }
+@media (max-height: 700px) {
+  .oval { padding: 6px 16px 18px; gap: 4px; border-radius: 50% / 14%; } .oval::before { border-radius: 50% / 14%; }
+  .opps { --cw: 30px; --ch: 44px; } .meseat { --cw: 38px; --ch: 54px; width: 88%; }
+  .opps .seat:first-child, .opps .seat:last-child { margin-top: 4px; }
+  .acard span { display: none; } .acard { max-height: 52px; min-height: 0 !important; }
+  .acard svg { width: 18px; height: 18px; }
+}
 </style>
 </head>
 <body>
@@ -373,6 +392,7 @@ body.th-arctic .oval { background: radial-gradient(ellipse at 50% 35%, #2f7aa0 0
     <main>
     <div class="opps" id="opps"></div>
   </main>
+    <div class="meseat" id="meseat"></div>
   </div>
   <div class="you" id="you"></div>
 </div>
@@ -1254,12 +1274,13 @@ body.th-arctic .oval { background: radial-gradient(ellipse at 50% 35%, #2f7aa0 0
     S.dealN = 0;
     var oppsHTML = S.players.map(function (p, i) { return i ? seatHTML(p, i) : ''; }).join('');
     var tip = tipText();
-    var youHTML = (tip ? '<p class="tip">' + tip + '</p>' : '') + seatHTML(me, 0) + handHTML(me) + controlsHTML(me);
+    var youHTML = (tip ? '<p class="tip">' + tip + '</p>' : '') + handHTML(me) + controlsHTML(me);
     var feed = S.log.slice(-2).map(function (m, i, a) { return '<li' + (i === a.length - 1 ? ' class="new"' : '') + '>' + m + '</li>'; }).join('');
     var order = S.dir === 1 ? 'You → Ava → Rex' : 'You → Rex → Ava';
     var overlay = overlayHTML();
 
     $('#opps').innerHTML = oppsHTML;
+    $('#meseat').innerHTML = seatHTML(me, 0);
     $('#you').innerHTML = youHTML;
     $('#feed').innerHTML = feed;
     $('#status').textContent = statusText();
