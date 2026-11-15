@@ -7,7 +7,7 @@ Paste these fields into App Store Connect. Do not put a price, a discount, or a 
 **Primary category:** Games → Card
 **Age rating:** 17+
 **Copyright:** 2026 Samay Vashsht
-**Price:** Free, plus one non-consumable in-app purchase
+**Price:** Free, plus five consumable chip packs
 **SKU:** twist21
 **Bundle ID:** com.samay.twist21
 **Apple ID:** 6833334755
@@ -21,10 +21,10 @@ Paste these fields into App Store Connect. Do not put a price, a discount, or a 
 
 **Keywords (100 characters):** card game,21,twenty one,action cards,strategy,skip,swap,bluff,solo,offline
 
-**Promotional text (optional):** Hit, stand, then twist the target. A solo card game with no betting.
+**Promotional text (optional):** Hit, stand, then twist the target. Free solo card game, all action cards included.
 
 **What’s New (1.0.0):**
-Twist 21 is a solo card game. Play to 21 against Ava and Rex, then use action cards to skip a turn, peek, or move the target.
+Twist 21 is free to play. New: all 9 action cards, three rivals' personalities, daily chip bonus, shop with card backs and table themes, stats.
 
 **Description**
 
@@ -38,36 +38,35 @@ HOW A TURN WORKS
 - Your first card stays face-down to everyone else
 
 ACTION CARDS
-Skip, Peek, Trim, Shield, and Reverse are free. Premium adds Swap, Force Hit, and two cards that move the target itself: Target 18 busts everyone above 18, and Target 24 gives everyone room.
+All free: Skip, Swap, Force Hit, Trim, Shield, Peek, Reverse, plus Target 18 and Target 24, which move the target itself. Chips unlock three bonus cards: Double, Freeze and Steal.
 
-FREE
-- 3 matches a day
-- 5 action cards
+FREE TO PLAY
+- Every action card and unlimited matches, no limits
+- 10,000 starting chips, a daily bonus up to 3,000, and chips for every round and match you win
+- Spend chips on bonus cards, card backs, table themes, and the bust-odds meter
 
-TWIST 21 PREMIUM
-One-time purchase, product ID twist21_premium, display name Twist 21 Premium. Not a subscription, and it does not renew. There is no free trial. The full price is shown on the purchase screen before you confirm (US $39.99). Premium unlocks:
-- All 9 action cards
-- Unlimited matches
-- The live bust-chance meter
+OPTIONAL CHIP PACKS
+Buy more chips if you want them: 5,000, 18,000, 35,000, 80,000 or 200,000 chips. Consumable in-app purchases, not subscriptions. The price is shown before you confirm.
 
-No betting, no chips, and no real-money play. No ads. No account.
+Chips are for play only. They are never staked on a match, cannot be cashed out, and have no real-world value. No ads. No account.
 
 Terms of Use (Apple Standard EULA): https://samayhuf-star.github.io/app-legal/twist21/terms/
 Privacy Policy: https://samayhuf-star.github.io/app-legal/twist21/privacy/
 Support: https://samayhuf-star.github.io/app-legal/twist21/support/
 
-**In-app purchase to submit with this version**
+**In-app purchases to submit with this version**
 
-The binary sells only this product. It already exists in App Store Connect. Set its price to US $39.99 and its display name to Twist 21 Premium. Product IDs cannot be renamed.
+Five consumables already exist in App Store Connect. Attach all five to this version, each with a review screenshot of the RevenueCat paywall. Retire `twist21_premium` and the Chips Pass subscriptions (`twist21_chipspass_monthly`, `twist21_chipspass_yearly`): remove them from sale and do not attach them.
 
-- Type: Non-Consumable
-- Product ID: `twist21_premium`
-- Reference name: Twist 21 Premium
-- Display name (en-US): Twist 21 Premium
-- Description (en-US): Lifetime unlock of all 9 action cards, unlimited matches, and the bust-chance meter. One-time purchase. No subscription.
-- Price: USD 39.99 (match the paywall; the app then shows StoreKit’s localized price)
-- Introductory offer: none
-- Review screenshot: `store/iap-review-paywall-1290x2796.png` (paywall only — do not use it as a listing screenshot, because it shows a price)
+| Product ID | Chips | USD |
+|---|---|---|
+| twist21_chips_5k | 5,000 | 0.99 |
+| twist21_chips_18k | 18,000 | 2.99 |
+| twist21_chips_35k | 35,000 | 4.99 |
+| twist21_chips_80k | 80,000 | 9.99 |
+| twist21_chips_200k | 200,000 | 19.99 |
+
+Purchases run through RevenueCat. Add the five products to a RevenueCat offering with a paywall.
 
 **Listing screenshots**
 
@@ -75,11 +74,11 @@ Five PNG files in `store/screenshots/`, each 1290×2796, no transparency. All fi
 
 **App Privacy (confirm in App Store Connect)**
 
-- Data Not Collected. Apple processes the payment. The app stores the unlock on the device and does not receive your name, email, or payment card.
+- Purchases: yes, via RevenueCat (not linked to identity, not used for tracking). Identifiers: anonymous user ID for purchases only, not linked, not tracking. Apple processes the payment; the app never receives your name, email, or card.
 - No tracking. No advertising data. No contact info, location, photos, or health data.
 
 **Age rating questionnaire**
 
-Answer simulated gambling honestly: every session is a blackjack-style card game. There is no wager, no chips, and no real-money prize. No unrestricted web (only Privacy, Terms, and Support). No user content. No accounts. Expect 17+.
+Answer simulated gambling honestly: every session is a blackjack-style card game. There is no wager and no real-money prize. Chips are never staked and have no cash value. No unrestricted web (only Privacy, Terms, and Support). No user content. No accounts. Expect 17+.
 
 **Screenshots must not show** a price, another platform’s status bar, a permission prompt, or a settings-only screen.

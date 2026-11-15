@@ -1,17 +1,16 @@
-// The only product this version sells. It already exists in App Store Connect.
-export const PRODUCT_ID = 'twist21_premium';
-
 export const PRIVACY_URL = 'https://samayhuf-star.github.io/app-legal/twist21/privacy/';
 export const TERMS_URL = 'https://samayhuf-star.github.io/app-legal/twist21/terms/';
 export const SUPPORT_URL = 'https://samayhuf-star.github.io/app-legal/twist21/support/';
 
-// One-time non-consumable. The paywall shows StoreKit's localized price when the product loads.
-// A non-consumable cannot include a free trial, so this version does not offer one.
-export const PRICING = {
-  lifetimePrice: 39.99,
-  productId: PRODUCT_ID,
-};
+// RevenueCat public SDK key for iOS (starts with appl_). Set EXPO_PUBLIC_REVENUECAT_IOS_KEY
+// in EAS env. A test_ key must never ship in a store build.
+export const REVENUECAT_IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
 
-export function lifetimePriceLabel(): string {
-  return `$${PRICING.lifetimePrice.toFixed(2)}`;
-}
+// Five consumable chip packs. Twist 21 is free to play; chips are the only purchase.
+export const CHIP_PACKS: Record<string, number> = {
+  twist21_chips_5k: 5000,
+  twist21_chips_18k: 18000,
+  twist21_chips_35k: 35000,
+  twist21_chips_80k: 80000,
+  twist21_chips_200k: 200000,
+};
