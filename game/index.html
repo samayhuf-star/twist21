@@ -103,7 +103,7 @@ button { font-family: inherit; }
 .card.num b { font-weight: 900; font-size: calc(var(--cw) * .52); font-variant-numeric: tabular-nums; }
 .card.num::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 7px; background: var(--band); }
 .card.lo { --band: var(--lo); } .card.mid { --band: var(--mid); } .card.hi { --band: var(--hi); }
-.card i { position: absolute; left: 6px; bottom: 4px; font-style: normal; font-size: 11px; font-weight: 700; opacity: .55; transform: rotate(180deg); }
+.card i { position: absolute; left: 5px; top: 10px; font-style: normal; font-size: 11px; font-weight: 800; opacity: .6; }
 .card.back {
   background: repeating-conic-gradient(from 0deg, #2c2966 0 15deg, #221f55 15deg 30deg);
   border: 2px solid var(--paper);
@@ -204,6 +204,100 @@ a.btn { text-decoration: none; display: inline-block; }
 .legal { color: var(--muted); font-size: 13px; margin: 0; }
 .legal a { color: var(--twist); font-weight: 700; }
 
+/* v2: one-screen table. Play never scrolls; Hit and Stand are pinned at the bottom. */
+html, body { height: 100%; overflow: hidden; }
+.wrap { height: 100dvh; max-height: 100dvh; padding: 10px 12px 12px; gap: 8px; overflow: hidden; }
+.top { gap: 8px; flex-wrap: nowrap; }
+.brand h1 { font-size: 26px; }
+.link { padding: 7px 13px; font-size: 13px; }
+.target { width: 54px; height: 54px; margin-left: auto; flex: none; }
+.ring { -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); }
+.target b { font-size: 20px; }
+.target small { display: none; }
+.bar { min-height: 0; }
+#meta { font-size: 12px; }
+main { flex: none; }
+.opps { grid-template-columns: 1fr 1fr; gap: 8px; --cw: 36px; --ch: 52px; }
+.opps .card i { display: none; }
+.opps .card.num b { font-size: 20px; }
+.opps .card.num::before { height: 5px; }
+.opps .card { border-radius: 7px; }
+.opps .seat { padding: 8px 10px; border-radius: 12px; }
+.opps .seat-head { margin-bottom: 6px; gap: 6px; }
+.opps .seat-total { font-size: 17px; }
+.opps .cards { gap: 5px; min-height: var(--ch); }
+.opps .amini { margin-top: 6px; font-size: 11px; }
+.seat-head h2 { font-size: 14px; }
+.spips { display: inline-flex; gap: 3px; margin-left: 2px; }
+.spips i { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--muted); display: block; }
+.spips i.on { background: var(--twist); border-color: var(--twist); }
+.chip { font-size: 10px; padding: 2px 7px; }
+.feedbox { padding: 6px 12px; flex: none; }
+#status { margin: 0 0 2px; font-size: 14px; }
+.feed { font-size: 12px; gap: 0; }
+.you { margin-top: auto; gap: 8px; --cw: 48px; --ch: 68px; }
+.you .seat { padding: 8px 10px; border-radius: 12px; }
+.you .seat-head { margin-bottom: 6px; gap: 6px; }
+.you .seat-total { font-size: 20px; }
+.you .cards { gap: 6px; min-height: var(--ch); }
+.hand { gap: 8px; flex-wrap: nowrap; }
+.acard { flex: 1 1 0; max-width: none; min-height: 84px; padding: 8px 9px; gap: 3px; border-radius: 10px; }
+.acard svg { width: 20px; height: 20px; }
+.acard strong { font-size: 11px; }
+.acard span { font-size: 10.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.empty { font-size: 13px; padding: 4px 2px; }
+.controls { gap: 8px; }
+.controls .btn { flex: 1 1 0; padding: 14px 10px; font-size: 16px; }
+.risk, .risk-lock { flex: 1 1 100%; font-size: 12px; text-align: center; }
+.chooser { padding: 8px 10px; }
+@media (min-width: 700px) { .opps { --cw: 44px; --ch: 62px; } .you { --cw: 56px; --ch: 80px; } }
+
+
+/* ---- v3: chips economy, themes, extras ---- */
+.coin { display:inline-block; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ffe27a, #e0a400); border:2px solid #b87f00; vertical-align:-1px; box-sizing:border-box; }
+.chipbtn { display:flex; align-items:center; gap:6px; }
+.tip { margin:0; padding:8px 12px; border-radius:12px; background:rgba(255,210,63,.12); border:1px solid rgba(255,210,63,.35); color:var(--paper); font-size:13px; }
+.bubble { position:absolute; top:-6px; right:10px; background:var(--paper); color:#1a1840; font-weight:800; font-size:12px; padding:4px 10px; border-radius:12px; z-index:2; animation:pop .2s ease-out; }
+.seat { position:relative; }
+.shake { animation:shake .4s; }
+@keyframes shake { 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+@keyframes pop { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+.earn { color:var(--twist); font-weight:800; }
+.bonus { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:14px; background:rgba(255,210,63,.12); border:1px solid rgba(255,210,63,.4); }
+.bonus div { display:flex; flex-direction:column; }
+.bonus span { color:var(--twist); font-weight:800; }
+.bonus .btn { margin:0; align-self:center; padding:10px 18px; }
+.menu { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.menu .btn { align-self:stretch; margin:0; }
+.tabs { display:flex; gap:6px; }
+.tab { flex:1; background:none; border:1px solid var(--edge); color:var(--paper); border-radius:999px; padding:9px; font-weight:700; cursor:pointer; }
+.tab.on { background:var(--twist); color:#1b1700; border-color:var(--twist); }
+.packs { display:flex; flex-direction:column; gap:6px; }
+.pack { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border:1px solid var(--edge); border-radius:12px; }
+.unavailable { color:var(--muted); font-size:14px; }
+.shoplist li { align-items:center; }
+.shoplist li > span { flex:1; font-size:14px; }
+.buy { background:var(--twist); color:#1b1700; border:0; border-radius:999px; padding:8px 12px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.styles { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.style { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:1px solid var(--edge); border-radius:12px; padding:8px 4px; color:var(--paper); cursor:pointer; }
+.style.on { border-color:var(--twist); }
+.style small { font-size:11px; font-weight:700; } .style em { font-style:normal; font-size:11px; color:var(--twist); }
+.sw { width:30px; height:42px; border-radius:8px; border:1px solid var(--edge); }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.stat { padding:12px; border:1px solid var(--edge); border-radius:12px; display:flex; flex-direction:column; gap:2px; }
+.stat b { font-size:22px; font-family:var(--display); } .stat span { color:var(--muted); font-size:12px; }
+.bk-ember { background:linear-gradient(135deg,#ff7a3c,#b3261e) !important; }
+.bk-ocean { background:linear-gradient(135deg,#3aa6d8,#1a3f8f) !important; }
+.bk-gold { background:linear-gradient(135deg,#ffe27a,#b87f00) !important; color:#3b2a00 !important; }
+body.th-felt { --table:#12402c; } body.th-wine { --table:#3d1530; } body.th-arctic { --table:#12334a; }
+.confetti { position:fixed; inset:0; pointer-events:none; z-index:30; overflow:hidden; }
+.confetti i { position:absolute; top:-12px; width:8px; height:12px; border-radius:2px; animation:fall 2s ease-in forwards; }
+@keyframes fall { to { transform:translate(var(--dx),105vh) rotate(720deg); opacity:.9; } }
+@media (prefers-reduced-motion: reduce) { .shake, .bubble { animation:none; } }
+.hand { align-items: stretch; }
+.acard { flex: 1 1 0; max-width: 50%; min-height: 0 !important; max-height: 96px; }
+.hand .empty { margin: 0; font-size: 13px; color: var(--muted); }
+@media (max-height: 700px) { .tip, .bar { display: none; } .feed li:not(.new) { display: none; } .acard { max-height: 80px; } }
 </style>
 </head>
 <body>
@@ -211,16 +305,12 @@ a.btn { text-decoration: none; display: inline-block; }
   <header class="top">
     <div class="brand">
       <h1>Twist <em>21</em></h1>
-      <p>Blackjack with action cards. You against Ava and Rex.</p>
-    </div>
-    <button class="link" data-act="rulesopen" type="button">Rules</button>
-    <button class="link gold" id="premBtn" data-act="paywall" type="button">Go Premium</button>
+          </div>
+    <button class="link gold chipbtn" data-act="shop" type="button" aria-label="Open shop"><i class="coin"></i><span id="chipsN">0</span></button>
+    <button class="link" data-act="menu" type="button" aria-label="Menu">Menu</button>
     <div class="target" aria-label="Current target"><div class="ring" id="ring"></div><b id="tnum">21</b><small>target</small></div>
   </header>
-  <div class="bar">
-    <div class="scores" id="score" aria-label="Scores"></div>
-    <div id="meta"></div>
-  </div>
+  <div class="bar"><div id="meta"></div></div>
   <main>
     <div class="opps" id="opps"></div>
   </main>
@@ -240,79 +330,139 @@ a.btn { text-decoration: none; display: inline-block; }
 
   var WIN_POINTS = 5;
   var NAMES = ['You', 'Ava', 'Rex'];
-  var ORDER = ['skip', 'swap', 'force', 'trim', 'shield', 'lower', 'raise', 'peek', 'reverse'];
+  // Cautious Ava stands early and likes Shield. Reckless Rex keeps hitting and loves Force Hit.
+  var RISK = { Ava: -1, Rex: 1 };
+  var BASE = ['skip', 'swap', 'force', 'trim', 'shield', 'lower', 'raise', 'peek', 'reverse'];
+  var EXTRA = ['double', 'freeze', 'steal'];
+  var ORDER = BASE.concat(EXTRA);
+  var EXTRA_PRICE = { double: 5000, freeze: 5000, steal: 6000 };
 
-  // ---- monetisation ----
-  var FREE_KINDS = ['skip', 'peek', 'trim', 'shield', 'reverse'];
-  var FREE_MATCHES = 3;
-  // Fallback until the app injects StoreKit's localized price. Keep in step with PRICING.lifetimePrice.
-  var PRICE = '$39.99';
-  // Web: paste a purchase link here to turn on the Unlock button.
-  // Native: the in-app paywall shows the price and contents, then asks the app to run the StoreKit purchase.
-  var PAY_URL = '';
-  var ENTITLEMENT = 'premium';
-  function inApp() { return typeof window !== 'undefined' && !!window.ReactNativeWebView; }
-  function toApp(type, url) { try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, entitlement: ENTITLEMENT, url: url })); } catch (e) { /* not in app */ } }
+  // ---- chips economy (chips are never staked on a match, and have no cash value) ----
+  var START_CHIPS = 10000;
+  var DAILY = [1000, 1300, 1600, 2000, 2300, 2600, 3000];
+  var REWARD = { round: 50, exact: 100, match: 200 };
+  var ODDS_COST = 100;
+  var PACKS = [
+    { id: 'twist21_chips_5k', chips: 5000, price: '$0.99' },
+    { id: 'twist21_chips_18k', chips: 18000, price: '$2.99' },
+    { id: 'twist21_chips_35k', chips: 35000, price: '$4.99' },
+    { id: 'twist21_chips_80k', chips: 80000, price: '$9.99' },
+    { id: 'twist21_chips_200k', chips: 200000, price: '$19.99' }
+  ];
+  var BACKS = [
+    { id: 'classic', name: 'Classic', price: 0 },
+    { id: 'ember', name: 'Ember', price: 2000 },
+    { id: 'ocean', name: 'Ocean', price: 2000 },
+    { id: 'gold', name: 'Gold Foil', price: 6000 }
+  ];
+  var THEMES = [
+    { id: 'midnight', name: 'Midnight', price: 0, sw: '#1a1840' },
+    { id: 'felt', name: 'Green Felt', price: 3000, sw: '#12402c' },
+    { id: 'wine', name: 'Wine', price: 3000, sw: '#3d1530' },
+    { id: 'arctic', name: 'Arctic', price: 6000, sw: '#12334a' }
+  ];
+
   var PRIVACY_URL = 'https://samayhuf-star.github.io/app-legal/twist21/privacy/';
   var TERMS_URL = 'https://samayhuf-star.github.io/app-legal/twist21/terms/';
   var SUPPORT_URL = 'https://samayhuf-star.github.io/app-legal/twist21/support/';
-  var HASHES = ["1c0942f89b19165b31071714be0d554ded21b5528e72f714c9976c53d7f69d9d", "e7fabba1ce350758c026f103340124a22f608d9e0d63cfb4af290787b3230de6", "6e45e1a5c85a94e964bef3b74fdd42d29fe3e6a7e066f726c27e95615be6d066", "0d57c3e7470230266f5c00c51efa6ac1b43e3e4c6415829a3406eddeca5d111e", "413b3b0d946d7bf2e5a20c181e7ea4e684ad8e54b9e6b3711bc3077009827182", "61a6f72e7010ab6247a7a5a7f8a5f478673c825def5b1bf30f92390db731d6be", "86a2174d17d064f7e8e8e562c38e2e3d1860bbf36c4c8e4ef966b5c9de432f1c", "0a08c22a3c9e1cc4763026b945b3f264b003a49a6626a474f8d0bd262400b826", "c5cf1040af74fd8a72a0746f515865f09d945e5650648c4ece1d2405980b18e8", "4c281feff7f6e3746eda1282bbc47470ca146d0953574ce6bda8f5b46f58dca3", "28cff48f2402c50ce46744191d691adeafc7e4279e66ff992157066f1bc8f244", "05234c60395d386f7490bcb2c61be90e049c7558127c204f3ca16086a0efc33f", "64f3ae7e4ab651387164059ae1eba5ab61f3d70f870921b973bd60e93c9e5d0a", "0436f6260befa86709037032d3b575301cbdd21b8b882636e8a19491e16a88f6", "a3cfca43541007c57e293c4bf28c0dfb811c28ad04185ad13b5bd1719de098e6", "fff59ba977c9eb8369bd707578185c122944b75e2b2704b634f8e52d83de25c7", "7881885e051d0c7397ea6150ea9244e35d42d81375097edaa9259ea906346eee", "7286b7f42df802eaf04e46879b3610113ae85f7f5f25813af16694e3a380e41c", "42e7e2226f2df1eb868b09affc5845add9f38b5fa5c19870b16e9142ccf7b2b9", "f735164493c9f501022f7029e9e179e77c20be0883b902ed62c6345e24091cc4", "80e15a95666ceb90107ba5ef9193d0e7955e158fccc6e9911060336a11875ece", "e826a6abb71d58aeef52084bf0096e3b552d7d2a2c77aeb757cdbb38463326c9", "cb13a42f8754123130fd204d4e9b3c848c2c459c3b478346dadf2b22ecb2b3ab", "51c238e973ad38529bddd77de4289ddd34e991898145afb2babca50cc8dd5012", "a5b21b09f727676951a078f24a42fff7a21ac80ecea2077003365776d9bc5a8c", "1840bc931321ba8c0e1e35746f0285b3a63e0421bdf4aa8765f17f0ee09bb1d6", "7b4d37a1b097769c4c17df61a8d0cd1d74db64c6ed9508ad14f30e585709cec2", "539201d9522e959eb1875b900d58aca4aad6b74c3f9fa94818af4d8105153c74", "3ba0d714630418e7de49987d574043f4ac42989eb003fbb83276e1a3ef8f2d37", "6c294893b593fe56a3fd547cf0cf6527fa2c208fb2448b1185aa052c8a129001", "51b83b2eabb5b170994e51481417f83acfdc34d22154984542d90cab3207ddcb", "b8b37c60639577921da46e18169abb8bbc205e8c8f0032cdee7cf2cf4aa607e8", "0035ba4edb5aca31105f5e9c8cc79adcf0cf5cd07ab5981cc060629b400b94e5", "f1cd5ef52983ef1a94e13c0b7469b69150a458373e4d76470787b11059871f2e", "b3b05c48f04cb73d8a857b0ac3d490303f89f4a8534f2faf6d232335ecb4e5a6", "146aca8ac3e041a3c1f0cb221451e43bb54d842c9715d0de21ab1c4410354c28", "67c20532c40b9e2f9d7db4cf353cf70ab15e662a20024c254e4e3ff02acad5a7", "a4ba944728719c7fd207cedf58d59d17cffda4fa682e904d741199b36b71bd0e", "0bbd2811eaa44f8db857fbeaaa003adcf7fa1eb122f59cc37b866214fabf3ce3", "153415b7cff98a07624c682d6e333af7472881b125f4e53fb8c1b7559ba1f2bc"];
 
-  function sha256(ascii) {
-    function rr(v, a) { return (v >>> a) | (v << (32 - a)); }
-    var mp = Math.pow, mw = mp(2, 32), i, j, result = '';
-    var words = [], bitLen = ascii.length * 8;
-    var hash = sha256.h = sha256.h || [], k = sha256.k = sha256.k || [], pc = k.length, comp = {};
-    for (var cand = 2; pc < 64; cand++) {
-      if (!comp[cand]) {
-        for (i = 0; i < 313; i += cand) comp[i] = cand;
-        hash[pc] = (mp(cand, 0.5) * mw) | 0;
-        k[pc++] = (mp(cand, 1 / 3) * mw) | 0;
-      }
-    }
-    ascii += '\x80';
-    while (ascii.length % 64 - 56) ascii += '\x00';
-    for (i = 0; i < ascii.length; i++) {
-      j = ascii.charCodeAt(i);
-      if (j >> 8) return '';
-      words[i >> 2] |= j << ((3 - i) % 4) * 8;
-    }
-    words[words.length] = ((bitLen / mw) | 0);
-    words[words.length] = bitLen;
-    for (j = 0; j < words.length;) {
-      var w = words.slice(j, j += 16), old = hash;
-      hash = hash.slice(0, 8);
-      for (i = 0; i < 64; i++) {
-        var w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
-        var t1 = hash[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i] +
-          (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
-        var t2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
-        hash = [(t1 + t2) | 0].concat(hash);
-        hash[4] = (hash[4] + t1) | 0;
-      }
-      for (i = 0; i < 8; i++) hash[i] = (hash[i] + old[i]) | 0;
-    }
-    for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) { var b = (hash[i] >> (j * 8)) & 255; result += (b < 16 ? 0 : '') + b.toString(16); }
-    return result;
+  function inApp() { return typeof window !== 'undefined' && !!window.ReactNativeWebView; }
+  function bridge(type, extra) {
+    try {
+      var m = { type: type };
+      for (var k in (extra || {})) m[k] = extra[k];
+      window.ReactNativeWebView.postMessage(JSON.stringify(m));
+    } catch (e) { /* not in app */ }
   }
-  function codeHash(code) { return sha256('twist21:' + String(code).toUpperCase().replace(/\s+/g, '')); }
 
+  // ---------- saved profile ----------
   var mem = {};
   function store(key, val) {
     try { if (val === undefined) return window.localStorage.getItem(key); window.localStorage.setItem(key, val); } catch (e) { /* storage blocked */ }
     if (val === undefined) return mem[key] == null ? null : mem[key];
     mem[key] = val; return null;
   }
-  function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  function matchesToday() {
-    var raw = store('twist21.day'), o = null;
-    try { o = raw ? JSON.parse(raw) : null; } catch (e) { o = null; }
-    return o && o.d === today() ? o.n : 0;
+  var SAVE_KEY = 'twist21.save2';
+  function freshStats() { return { matches: 0, wins: 0, rounds: 0, roundWins: 0, streak: 0, best: 0, busts: 0, exact: 0, biggest: 0, cards: {} }; }
+  function defaults() {
+    return { chips: START_CHIPS, streak: 0, last: '', owned: {}, back: 'classic', theme: 'midnight', mute: false, tipsDone: false, txs: [], stats: freshStats() };
   }
-  function bumpMatches() { store('twist21.day', JSON.stringify({ d: today(), n: matchesToday() + 1 })); }
+  function load() {
+    var d = defaults(), o = null;
+    try { var raw = store(SAVE_KEY); o = raw ? JSON.parse(raw) : null; } catch (e) { o = null; }
+    if (o) {
+      for (var k in d) if (o[k] !== undefined && k !== 'stats') d[k] = o[k];
+      var st = freshStats();
+      for (var s in st) if (o.stats && o.stats[s] !== undefined) st[s] = o.stats[s];
+      d.stats = st;
+    }
+    return d;
+  }
+  var G = load();
+  function persist() { store(SAVE_KEY, JSON.stringify(G)); }
+  function fmt(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function dayKey(off) {
+    var d = new Date(Date.now() + (off || 0) * 864e5);
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+  function dailyInfo() {
+    if (G.last === dayKey(0)) return null;
+    var day = G.last === dayKey(-1) ? (G.streak % 7) + 1 : 1;
+    return { day: day, amount: DAILY[day - 1] };
+  }
+  function addChipsQuiet(n) { G.chips = Math.max(0, G.chips + n); persist(); }
+  function spend(n) { if (G.chips < n) return false; G.chips -= n; persist(); return true; }
+  function owned(id) { return !!G.owned[id]; }
 
+  // ---------- sound, haptics, confetti ----------
+  var AC = null;
+  function ac() {
+    if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function tone(f, d, type, g, delay, slide) {
+    var c = ac(); if (!c || G.mute) return;
+    var t = c.currentTime + (delay || 0), o = c.createOscillator(), v = c.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + d);
+    v.gain.setValueAtTime(0.0001, t); v.gain.exponentialRampToValueAtTime(g || 0.1, t + 0.01); v.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(v); v.connect(c.destination); o.start(t); o.stop(t + d + 0.03);
+  }
+  var SFX = {
+    flip: function () { tone(720, 0.05, 'triangle', 0.08); tone(480, 0.06, 'triangle', 0.06, 0.04); },
+    hit: function () { tone(440, 0.08, 'triangle', 0.1); tone(560, 0.09, 'triangle', 0.08, 0.06); },
+    stand: function () { tone(330, 0.12, 'sine', 0.1); },
+    action: function () { tone(520, 0.07, 'square', 0.05); tone(780, 0.1, 'square', 0.05, 0.06); },
+    shield: function () { tone(300, 0.2, 'sine', 0.1, 0, 600); },
+    bust: function () { tone(240, 0.4, 'sawtooth', 0.1, 0, 70); },
+    win: function () { tone(523, 0.12, 'triangle', 0.1); tone(659, 0.12, 'triangle', 0.1, 0.1); tone(784, 0.2, 'triangle', 0.1, 0.2); },
+    exact: function () { tone(523, 0.1, 'triangle', 0.1); tone(659, 0.1, 'triangle', 0.1, 0.08); tone(784, 0.1, 'triangle', 0.1, 0.16); tone(1047, 0.35, 'triangle', 0.1, 0.24); },
+    chip: function () { tone(880, 0.06, 'sine', 0.08); tone(1320, 0.1, 'sine', 0.08, 0.05); },
+    tap: function () { tone(600, 0.03, 'sine', 0.05); }
+  };
+  function sfx(n) { if (!hasDom || S.fast) return; try { if (SFX[n]) SFX[n](); } catch (e) { /* audio blocked */ } }
+  function haptic(style) { if (!hasDom || S.fast) return; bridge('haptic', { style: style }); }
+  function reduced() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+  function confetti() {
+    if (!hasDom || S.fast || reduced()) return;
+    var box = document.createElement('div'); box.className = 'confetti';
+    var cols = ['#ffd23f', '#ff5a3c', '#3ddc97', '#b9a6ff', '#59c9d6', '#ff8fa3'];
+    for (var i = 0; i < 40; i++) {
+      var p = document.createElement('i');
+      p.style.left = Math.round(Math.random() * 100) + '%';
+      p.style.background = cols[i % cols.length];
+      p.style.animationDelay = (Math.random() * 0.4).toFixed(2) + 's';
+      p.style.setProperty('--dx', Math.round((Math.random() - 0.5) * 160) + 'px');
+      box.appendChild(p);
+    }
+    document.body.appendChild(box);
+    setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 2400);
+  }
+
+  // ---------- cards ----------
   var ACTIONS = {
-    skip:   { name: 'Skip',      desc: 'The next player loses their turn.' },
+    skip:    { name: 'Skip',      desc: 'The next player loses their turn.' },
     swap:    { name: 'Swap',      desc: 'Trade your last face-up card with another player’s.' },
     force:   { name: 'Force Hit', desc: 'A player still in the round draws a card now.' },
     trim:    { name: 'Trim',      desc: 'Discard your highest face-up card.' },
@@ -320,9 +470,11 @@ a.btn { text-decoration: none; display: inline-block; }
     lower:   { name: 'Target 18', desc: 'Target drops to 18. Everyone above it busts, you too.' },
     raise:   { name: 'Target 24', desc: 'Target rises to 24. Nobody busts.' },
     peek:    { name: 'Peek',      desc: 'Look at one player’s face-down card.' },
-    reverse: { name: 'Reverse',   desc: 'Turn order flips direction.' }
+    reverse: { name: 'Reverse',   desc: 'Turn order flips direction.' },
+    double:  { name: 'Double',    desc: 'Draw exactly one more card, then you must stand.' },
+    freeze:  { name: 'Freeze',    desc: 'A player misses their next turn and cannot be Force Hit before it.' },
+    steal:   { name: 'Steal',     desc: 'Take a random action card from another player.' }
   };
-
   var ICON_PATHS = {
     skip: '<path d="M5 5l8 7-8 7zM13 5l8 7-8 7z"/>',
     swap: '<path d="M4 8h14l-3-3M20 16H6l3 3"/>',
@@ -332,38 +484,37 @@ a.btn { text-decoration: none; display: inline-block; }
     lower: '<path d="M6 7l6 6 6-6M6 13l6 6 6-6"/>',
     raise: '<path d="M6 17l6-6 6 6M6 11l6-6 6 6"/>',
     peek: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
-    reverse: '<path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>'
+    reverse: '<path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
+    double: '<rect x="3" y="7" width="11" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v12"/>',
+    freeze: '<path d="M12 3v18M4.5 7.5l15 9M4.5 16.5l15-9"/>',
+    steal: '<path d="M3 12h13M12 6l6 6-6 6"/><path d="M21 4v16"/>'
   };
   function icon(k) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON_PATHS[k] + '</svg>';
   }
 
+  var LINES = {
+    Ava: { stand: ['I’ll hold.', 'Safe is a strategy.'], bust: ['Hmm. Unlucky.', 'That was not the plan.'], win: ['Calculated.', 'As expected.'], youBust: ['Careful now.', 'Greedy.'], hit: ['One more, carefully.'] },
+    Rex: { stand: ['Fine. Stopping.', 'Your move.'], bust: ['Worth the risk!', 'Next round!'], win: ['Boom!', 'Too easy!'], youBust: ['Ha! Too greedy.', 'Ouch!'], hit: ['Hit me!', 'More!'] }
+  };
+
   var S = {
     players: [], deck: [], discards: [], target: 21, dir: 1, cur: 0, round: 0,
     phase: 'intro', humanTurn: false, acted: false, pending: null, log: [],
-    seen: new Set(), roundEnded: false, flipped: false, rules: false, uid: 0,
+    seen: new Set(), roundEnded: false, flipped: false, uid: 0,
     result: null, champ: null, finish: null, fast: false, autoHuman: false, overlayKey: '',
-    premium: false, paywall: null, codeDraft: '', codeMsg: '', lastOverlay: null, storeReady: false
+    screen: null, shopTab: 'chips', oddsShown: false, shake: [], lastOverlay: null, toast: ''
   };
-  function kinds() { return S.premium ? ORDER : FREE_KINDS; }
-  function tryRedeem(code) {
-    var h = codeHash(code);
-    if (h && HASHES.indexOf(h) >= 0) { S.premium = true; store('twist21.premium', h); return true; }
-    return false;
-  }
-  function allowMatch() {
-    if (S.premium) return true;
-    if (matchesToday() >= FREE_MATCHES) {
-      S.paywall = { reason: 'limit' }; render(); return false;
-    }
-    bumpMatches();
-    return true;
-  }
+  function kinds() { return BASE.concat(EXTRA.filter(function (k) { return owned('k_' + k); })); }
 
-  function sleep(ms) {
-    return S.fast ? Promise.resolve() : new Promise(function (r) { setTimeout(r, ms); });
-  }
+  function sleep(ms) { return S.fast ? Promise.resolve() : new Promise(function (r) { setTimeout(r, ms); }); }
   function log(m) { S.log.push(m); if (S.log.length > 40) S.log.shift(); }
+  function say(p, kind) {
+    if (!hasDom || S.fast || p.human) return;
+    var l = LINES[p.name] && LINES[p.name][kind]; if (!l) return;
+    p.say = l[Math.floor(Math.random() * l.length)];
+    setTimeout(function () { p.say = ''; if (hasDom) render(); }, 2200);
+  }
 
   // ---------- helpers ----------
   function total(p) { var t = 0; for (var i = 0; i < p.cards.length; i++) t += p.cards[i].v; return t; }
@@ -403,6 +554,12 @@ a.btn { text-decoration: none; display: inline-block; }
   }
 
   // ---------- rules engine ----------
+  function bustFx(p) {
+    S.shake.push(idxOf(p));
+    sfx('bust');
+    if (p.human) haptic('error'); else say(p, 'bust');
+    if (!p.human) { /* the human sees the other seat shake */ } else { S.players.forEach(function (o) { if (!o.human && !o.bust) say(o, 'youBust'); }); }
+  }
   function giveCard(p, c) {
     if (c.t === 'a') {
       p.actions.push(c);
@@ -411,18 +568,22 @@ a.btn { text-decoration: none; display: inline-block; }
         log(p.name + ' ' + V(p, 'drop', 'drops') + ' ' + ACTIONS[d.k].name + ' (hand limit is 3).');
       }
       log(p.name + ' ' + V(p, 'draw', 'draws') + ' an action card' + (p.human ? ': ' + ACTIONS[c.k].name + '.' : '.'));
+      sfx('flip');
       return;
     }
     p.cards.push(c);
+    sfx('flip');
     if (total(p) > S.target) {
       if (p.shield) {
         p.shield = false;
         p.cards.pop();
         S.discards.push(c.v);
+        sfx('shield');
         log(p.name + V(p, 'r', '’s') + ' Shield absorbs a ' + c.v + '.');
       } else {
         p.bust = true;
         log(p.name + ' ' + V(p, 'draw', 'draws') + ' ' + c.v + ' and ' + V(p, 'bust', 'busts') + ' with ' + total(p) + '.');
+        bustFx(p);
       }
     } else {
       log(p.name + ' ' + V(p, 'draw', 'draws') + ' ' + c.v + '.');
@@ -436,9 +597,11 @@ a.btn { text-decoration: none; display: inline-block; }
       if (t > S.target) {
         p.bust = true;
         log(p.name + ' ' + V(p, 'go', 'goes') + ' over ' + S.target + ' and ' + V(p, 'bust', 'busts') + '.');
+        bustFx(p);
       } else if (t === S.target && !p.stood) {
         p.stood = true;
         log(p.name + ' ' + V(p, 'hit', 'hits') + ' ' + S.target + ' on the nose.');
+        if (p.human) { haptic('success'); sfx('exact'); confetti(); }
       }
     });
   }
@@ -446,8 +609,10 @@ a.btn { text-decoration: none; display: inline-block; }
   function targetsFor(p, k) {
     var others = S.players.filter(function (o) { return o !== p && !o.bust; });
     if (k === 'swap') return p.cards.length >= 2 ? others.filter(function (o) { return o.cards.length >= 2; }) : [];
-    if (k === 'force') return others.filter(function (o) { return !o.stood; });
+    if (k === 'force') return others.filter(function (o) { return !o.stood && !o.frozen; });
     if (k === 'peek') return others.filter(function (o) { return !p.peeked.has(idxOf(o)); });
+    if (k === 'freeze') return others.filter(function (o) { return active(o); });
+    if (k === 'steal') return others.filter(function (o) { return o.actions.length > 0; });
     return null;
   }
   function valid(p, k) {
@@ -461,10 +626,17 @@ a.btn { text-decoration: none; display: inline-block; }
     return true;
   }
 
+  function doStandQuiet(p) {
+    p.stood = true;
+    log(p.name + ' ' + V(p, 'stand', 'stands') + ' on ' + total(p) + (p.human ? '.' : ' (' + visTotal(p) + ' showing).'));
+  }
+
   function doAction(p, k, ti) {
     var i = p.actions.findIndex(function (a) { return a.k === k; });
     if (i < 0) return;
     p.actions.splice(i, 1);
+    if (p.human) { G.stats.cards[k] = (G.stats.cards[k] || 0) + 1; persist(); }
+    sfx('action'); if (p.human) haptic('medium');
     var t = ti != null ? S.players[ti] : null;
     var P = p.name + ' ' + V(p, 'play', 'plays') + ' ';
     if (k === 'skip') {
@@ -499,12 +671,26 @@ a.btn { text-decoration: none; display: inline-block; }
     } else if (k === 'reverse') {
       S.dir *= -1;
       log(P + 'Reverse. Turn order flips.');
+    } else if (k === 'double') {
+      log(P + 'Double. One more card, then ' + V(p, 'you stand', 'stands') + '.');
+      giveCard(p, drawAny());
+      settleAll();
+      if (active(p)) doStandQuiet(p);
+    } else if (k === 'freeze') {
+      t.skip = true; t.frozen = true;
+      log(P + 'Freeze on ' + obj(t) + '. ' + (t.human ? 'You miss' : t.name + ' misses') + ' the next turn.');
+    } else if (k === 'steal') {
+      var j = Math.floor(Math.random() * t.actions.length);
+      var st = t.actions.splice(j, 1)[0];
+      p.actions.push(st);
+      if (p.actions.length > 3) { var dd = p.actions.shift(); log(p.name + ' ' + V(p, 'drop', 'drops') + ' ' + ACTIONS[dd.k].name + ' (hand limit is 3).'); }
+      log(P + 'Steal and ' + V(p, 'take', 'takes') + ' ' + (p.human ? ACTIONS[st.k].name : 'an action card') + ' from ' + obj(t) + '.');
     }
     settleAll();
   }
 
-  function doHit(p) { giveCard(p, drawAny()); settleAll(); }
-  function doStand(p) { p.stood = true; log(p.name + ' ' + V(p, 'stand', 'stands') + ' on ' + total(p) + (p.human ? '.' : ' (' + visTotal(p) + ' showing).')); }
+  function doHit(p) { giveCard(p, drawAny()); settleAll(); if (!p.human && !p.bust) say(p, 'hit'); }
+  function doStand(p) { doStandQuiet(p); if (!p.human) say(p, 'stand'); else sfx('stand'); }
 
   // ---------- bots ----------
   function botKnows(p, o) { return o === p || p.peeked.has(idxOf(o)); }
@@ -515,7 +701,7 @@ a.btn { text-decoration: none; display: inline-block; }
 
   function botChooseAction(p) {
     var has = function (k) { return p.actions.some(function (a) { return a.k === k; }) && valid(p, k); };
-    var T = total(p), tgt = S.target;
+    var T = total(p), tgt = S.target, risk = p.risk || 0;
     var opps = S.players.filter(function (o) { return o !== p && !o.bust; });
     var r = Math.random;
 
@@ -528,10 +714,18 @@ a.btn { text-decoration: none; display: inline-block; }
       var pt = targetsFor(p, 'peek')[0];
       return { k: 'peek', target: idxOf(pt) };
     }
-    if (has('shield') && T >= 9) return { k: 'shield' };
+    if (has('shield') && T >= (risk < 0 ? 7 : 9)) return { k: 'shield' };
+    if (has('freeze')) {
+      var fz = targetsFor(p, 'freeze').slice().sort(function (a, b) { return estTotal(p, b) - estTotal(p, a); });
+      if (fz.length && estTotal(p, fz[0]) >= T && r() < 0.55) return { k: 'freeze', target: idxOf(fz[0]) };
+    }
     if (has('force')) {
       var cands = targetsFor(p, 'force').slice().sort(function (a, b) { return estTotal(p, b) - estTotal(p, a); });
-      if (cands.length && estTotal(p, cands[0]) >= tgt - 6 && r() < 0.75) return { k: 'force', target: idxOf(cands[0]) };
+      if (cands.length && estTotal(p, cands[0]) >= tgt - 6 && r() < (risk > 0 ? 0.95 : risk < 0 ? 0.4 : 0.75)) return { k: 'force', target: idxOf(cands[0]) };
+    }
+    if (has('steal')) {
+      var sc0 = targetsFor(p, 'steal').slice().sort(function (a, b) { return b.actions.length - a.actions.length; });
+      if (sc0.length && r() < 0.6) return { k: 'steal', target: idxOf(sc0[0]) };
     }
     if (has('swap')) {
       var myLast = p.cards[p.cards.length - 1].v;
@@ -546,20 +740,24 @@ a.btn { text-decoration: none; display: inline-block; }
       }
     }
     if (has('trim') && T >= tgt - 3 && T < tgt && r() < 0.5) return { k: 'trim' };
+    if (has('double') && T >= tgt - 9 && T <= tgt - 4 && r() < (risk > 0 ? 0.6 : 0.35)) return { k: 'double' };
     if (has('skip') && T < tgt - 5 && r() < 0.5) return { k: 'skip' };
     if (has('reverse') && r() < 0.2) return { k: 'reverse' };
     return null;
   }
 
   function botShouldHit(p) {
-    var T = total(p), tgt = S.target;
+    var T = total(p), tgt = S.target, risk = p.risk || 0;
     if (T >= tgt) return false;
     var others = S.players.filter(function (o) { return o !== p; });
     if (others.every(function (o) { return o.bust; })) return false;
-    if (T < tgt - 4) return true;
+    var auto = tgt - 4 + (risk > 0 ? 1 : 0) - (risk < 0 ? 1 : 0);
+    if (T < auto) return true;
     var best = 0;
     others.forEach(function (o) { if (!o.bust) best = Math.max(best, estTotal(p, o)); });
-    if (best > T && T < tgt - 1) return Math.random() < (p.shield ? 0.9 : 0.55);
+    var mult = risk < 0 ? 0.6 : risk > 0 ? 1.4 : 1;
+    if (best > T && T < tgt - 1) return Math.random() < (p.shield ? 0.9 : 0.55) * mult;
+    if (risk > 0 && best > T && T < tgt) return Math.random() < 0.5;
     if (p.shield && T < tgt - 1) return true;
     return false;
   }
@@ -582,7 +780,7 @@ a.btn { text-decoration: none; display: inline-block; }
   // ---------- human turn ----------
   function humanTurn() {
     return new Promise(function (res) {
-      S.humanTurn = true; S.acted = false; S.pending = null;
+      S.humanTurn = true; S.acted = false; S.pending = null; S.oddsShown = false;
       S.finish = function () { S.humanTurn = false; S.pending = null; S.finish = null; res(); };
       render();
     });
@@ -599,6 +797,7 @@ a.btn { text-decoration: none; display: inline-block; }
     if (!S.humanTurn || S.pending) return;
     var me = S.players[0];
     S.humanTurn = false;
+    haptic('light');
     doHit(me); render();
     if (S.finish) S.finish();
   }
@@ -606,6 +805,7 @@ a.btn { text-decoration: none; display: inline-block; }
     if (!S.humanTurn || S.pending) return;
     var me = S.players[0];
     S.humanTurn = false;
+    haptic('medium');
     doStand(me); render();
     if (S.finish) S.finish();
   }
@@ -613,11 +813,9 @@ a.btn { text-decoration: none; display: inline-block; }
   // ---------- flow ----------
   function initMatch() {
     S.players = NAMES.map(function (n, i) {
-      return { name: n, human: i === 0, points: 0, cards: [], actions: [], stood: false, bust: false, skip: false, shield: false, peeked: new Set() };
+      return { name: n, human: i === 0, risk: RISK[n] || 0, say: '', points: 0, cards: [], actions: [], stood: false, bust: false, skip: false, frozen: false, shield: false, peeked: new Set() };
     });
     S.round = 0; S.log = []; S.champ = null; S.result = null; S.seen = new Set();
-    var saved = store('twist21.premium');
-    if (saved && HASHES.indexOf(saved) >= 0) S.premium = true;
     startRound();
     S.phase = 'intro';
     render();
@@ -627,9 +825,9 @@ a.btn { text-decoration: none; display: inline-block; }
     S.round++;
     S.deck = makeDeck(); S.discards = [];
     S.target = 21; S.dir = 1; S.roundEnded = false; S.flipped = false;
-    S.pending = null; S.humanTurn = false; S.acted = false; S.result = null;
+    S.pending = null; S.humanTurn = false; S.acted = false; S.result = null; S.shake = [];
     S.players.forEach(function (p) {
-      p.cards = []; p.actions = []; p.stood = false; p.bust = false; p.skip = false; p.shield = false; p.peeked = new Set();
+      p.cards = []; p.actions = []; p.stood = false; p.bust = false; p.skip = false; p.frozen = false; p.shield = false; p.peeked = new Set(); p.say = '';
     });
     S.players.forEach(function (p) { p.actions.push(drawAction()); });
     for (var pass = 0; pass < 2; pass++) S.players.forEach(function (p) { p.cards.push(drawNumber()); });
@@ -645,7 +843,7 @@ a.btn { text-decoration: none; display: inline-block; }
       var p = S.players[S.cur];
       if (!active(p)) { S.cur = nextIdx(S.cur); continue; }
       if (p.skip) {
-        p.skip = false;
+        p.skip = false; p.frozen = false;
         log(p.name + ' ' + V(p, 'miss', 'misses') + ' the turn.');
         render(); await sleep(800);
         S.cur = nextIdx(S.cur);
@@ -658,6 +856,23 @@ a.btn { text-decoration: none; display: inline-block; }
       S.cur = nextIdx(S.cur);
     }
     await endRound();
+  }
+
+  function recordStats(rows, winner, pts, matchOver) {
+    var st = G.stats, me = S.players[0];
+    st.rounds++;
+    if (me.bust) st.busts++;
+    if (winner === me) { st.roundWins++; if (pts === 2) st.exact++; }
+    if (matchOver) {
+      st.matches++;
+      if (S.champ === me) {
+        st.wins++; st.streak++;
+        if (st.streak > st.best) st.best = st.streak;
+        var rival = 0;
+        S.players.forEach(function (o) { if (o !== me) rival = Math.max(rival, o.points); });
+        st.biggest = Math.max(st.biggest, me.points - rival);
+      } else { st.streak = 0; }
+    }
   }
 
   async function endRound() {
@@ -680,12 +895,23 @@ a.btn { text-decoration: none; display: inline-block; }
         msg = 'Tie at ' + best + '. No points.';
       }
     }
-    S.result = { rows: rows, winner: winner, pts: pts, msg: msg, target: S.target };
+    S.result = { rows: rows, winner: winner, pts: pts, msg: msg, target: S.target, reward: 0 };
     log('Round over. ' + msg);
+    if (winner && !winner.human) say(winner, 'win');
     render();
     await sleep(1800);
     S.champ = S.players.find(function (p) { return p.points >= WIN_POINTS; }) || null;
+    var reward = 0;
+    if (winner && winner.human) reward += pts === 2 ? REWARD.exact : REWARD.round;
+    if (S.champ && S.champ.human) reward += REWARD.match;
+    recordStats(rows, winner, pts, !!S.champ);
+    if (reward) { addChipsQuiet(reward); }
+    S.result.reward = reward;
+    if (winner && winner.human) { sfx(pts === 2 ? 'exact' : 'win'); haptic('success'); if (pts === 2) confetti(); }
+    if (S.champ && S.champ.human) confetti();
+    if (!G.tipsDone && S.round >= 3) { G.tipsDone = true; persist(); }
     S.phase = S.champ ? 'matchEnd' : 'roundEnd';
+    persist();
     render();
   }
 
@@ -717,13 +943,14 @@ a.btn { text-decoration: none; display: inline-block; }
       if (v > gap) bad += n;
     }
     if (!un) return 0;
+    // About 3 in 10 cards left in the deck are action cards, which cannot bust you.
     return Math.round((bad / un) * 0.69 * 20) * 5;
   }
 
   // ---------- rendering ----------
   function cardHTML(c, o) {
     var deal = S.seen.has(c.id) ? '' : ' deal';
-    if (o.down) return '<div class="card back' + deal + '" role="img" aria-label="Face-down card"><b>21</b></div>';
+    if (o.down) return '<div class="card back bk-' + G.back + deal + '" role="img" aria-label="Face-down card"><b>21</b></div>';
     var band = c.v <= 3 ? 'lo' : c.v <= 7 ? 'mid' : 'hi';
     return '<div class="card num ' + band + deal + (o.flip ? ' flip' : '') + (o.peeked ? ' peeked' : '') + (o.mine ? ' mine' : '') +
       '" role="img" aria-label="Card ' + c.v + '"><b>' + c.v + '</b><i>' + c.v + '</i></div>';
@@ -734,9 +961,14 @@ a.btn { text-decoration: none; display: inline-block; }
     if (p.bust) h += '<span class="chip bust">Bust</span>';
     else if (p.stood) h += '<span class="chip stood">Standing</span>';
     if (p.shield) h += '<span class="chip shield">Shield up</span>';
-    if (p.skip) h += '<span class="chip skip">Misses next turn</span>';
+    if (p.skip) h += '<span class="chip skip">' + (p.frozen ? 'Frozen' : 'Misses next turn') + '</span>';
     if (S.phase === 'play' && !S.roundEnded && S.cur === i && active(p)) h += '<span class="chip turn">' + (p.human ? 'Your turn' : 'Playing') + '</span>';
     return h;
+  }
+  function spipsHTML(p) {
+    var h = '<span class="spips" aria-label="' + p.points + ' of ' + WIN_POINTS + ' points">';
+    for (var k = 0; k < WIN_POINTS; k++) h += '<i class="' + (k < p.points ? 'on' : '') + '"></i>';
+    return h + '</span>';
   }
 
   function seatHTML(p, i) {
@@ -752,13 +984,15 @@ a.btn { text-decoration: none; display: inline-block; }
     }).join('');
     var totalTxt = reveal ? String(total(p)) : visTotal(p) + '+?';
     var turn = S.phase === 'play' && !S.roundEnded && S.cur === i && active(p);
-    var h = '<section class="seat' + (turn ? ' is-turn' : '') + (p.bust ? ' is-bust' : '') + (p.human ? ' is-me' : '') + '" aria-label="' + p.name + '">';
-    h += '<div class="seat-head"><h2>' + p.name + '</h2><div class="chips">' + chips(p, i) + '</div><div class="seat-total" title="' + (reveal ? 'Total' : 'Face-up total plus one hidden card') + '">' + totalTxt + '</div></div>';
+    var shake = S.shake.indexOf(i) >= 0 ? ' shake' : '';
+    var h = '<section class="seat' + (turn ? ' is-turn' : '') + (p.bust ? ' is-bust' : '') + (p.human ? ' is-me' : '') + shake + '" aria-label="' + p.name + '">';
+    if (p.say) h += '<div class="bubble">' + p.say + '</div>';
+    h += '<div class="seat-head"><h2>' + p.name + '</h2>' + spipsHTML(p) + '<div class="chips">' + chips(p, i) + '</div><div class="seat-total" title="' + (reveal ? 'Total' : 'Face-up total plus one hidden card') + '">' + totalTxt + '</div></div>';
     h += '<div class="cards">' + cards + '</div>';
     if (!p.human) {
       var pips = '';
       for (var k = 0; k < p.actions.length; k++) pips += '<span class="apip"></span>';
-      h += '<div class="amini"><span class="apips">' + pips + '</span><span>' + p.actions.length + ' action card' + (p.actions.length === 1 ? '' : 's') + '</span></div>';
+      h += '<div class="amini"><span class="apips">' + pips + '</span><span>' + p.actions.length + ' action' + (p.actions.length === 1 ? '' : 's') + '</span></div>';
     }
     return h + '</section>';
   }
@@ -776,8 +1010,16 @@ a.btn { text-decoration: none; display: inline-block; }
     return h + '</div>';
   }
 
-  function statusText() {
+  function tipText() {
+    if (G.tipsDone || S.phase !== 'play' || !S.humanTurn || S.pending) return '';
     var me = S.players[0];
+    if (S.round === 1 && !S.acted && me.actions.length) return 'Tip: play ONE action card per turn, then Hit or Stand. Tap a card to use it.';
+    if (S.round === 1) return 'Tip: Hit draws a card. Stand locks your total. Closest to the target without going over wins.';
+    if (S.round === 2) return 'Tip: landing exactly on the target scores 2 points. First to 5 wins the match.';
+    return 'Tip: your first card is hidden from rivals. Peek lets you see theirs.';
+  }
+
+  function statusText() {
     if (S.phase === 'intro') return 'Ready when you are.';
     if (S.roundEnded) return 'Cards revealed.';
     if (S.pending) return 'Pick a target for ' + ACTIONS[S.pending.k].name + '.';
@@ -799,17 +1041,20 @@ a.btn { text-decoration: none; display: inline-block; }
       h += '<button class="pick ghost" data-act="cancel">Cancel</button></div>';
     }
     var on = S.humanTurn && !S.pending;
-    var risk = on && S.premium ? bustRisk(me) : null;
-    var riskHTML = !S.premium
-      ? '<button class="risk-lock" data-act="paywall" type="button">Bust chance meter: Premium</button>'
-      : '<p class="risk">' + (risk === null ? '&nbsp;' : (total(me) >= S.target ? 'Already on target.' : 'Bust chance if you hit: about ' + risk + '%')) + '</p>';
+    var riskHTML;
+    if (S.oddsShown && on) {
+      var risk = bustRisk(me);
+      riskHTML = '<p class="risk">' + (total(me) >= S.target ? 'Already on target.' : 'Bust chance if you hit: about ' + risk + '%') + '</p>';
+    } else {
+      riskHTML = '<button class="risk-lock" data-act="odds" type="button"' + (on ? '' : ' disabled') + '>Show bust odds · ' + ODDS_COST + ' chips</button>';
+    }
     h += '<div class="controls"><button class="btn hit" data-act="hit"' + (on ? '' : ' disabled') + '>Hit</button>' +
       '<button class="btn stand" data-act="stand"' + (on ? '' : ' disabled') + '>Stand</button>' + riskHTML + '</div>';
     return h;
   }
 
   function resultHTML() {
-    var R = S.result, me = S.players[0];
+    var R = S.result;
     var final = S.phase === 'matchEnd';
     var head = final ? (S.champ.human ? 'You win the match' : S.champ.name + ' wins the match')
       : (R.winner ? (R.winner.human ? 'You take the round' : R.winner.name + ' takes the round') : 'No winner this round');
@@ -818,8 +1063,9 @@ a.btn { text-decoration: none; display: inline-block; }
       return '<tr><th scope="row">' + r.p.name + '</th><td>' + r.p.cards.map(function (c) { return c.v; }).join(' · ') + '</td><td class="num">' + r.total + '</td><td>' + res + '</td></tr>';
     }).join('');
     var score = S.players.map(function (p) { return p.name + ' ' + p.points; }).join('  ·  ');
+    var reward = R.reward ? '<p class="earn"><i class="coin"></i> +' + fmt(R.reward) + ' chips earned</p>' : '';
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
-      '<p class="eyebrow">Round ' + S.round + ' · target ' + R.target + '</p><h2 id="ovt">' + head + '</h2><p>' + R.msg + '</p>' +
+      '<p class="eyebrow">Round ' + S.round + ' · target ' + R.target + '</p><h2 id="ovt">' + head + '</h2><p>' + R.msg + '</p>' + reward +
       '<div class="tablewrap"><table><thead><tr><th>Player</th><th>Cards</th><th class="num">Total</th><th>Result</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
       '<p class="score">Score (first to ' + WIN_POINTS + '): ' + score + '</p>' +
       '<button id="primary" class="btn hit" data-act="' + (final ? 'newmatch' : 'next') + '">' + (final ? 'New match' : 'Next round') + '</button></div></div>';
@@ -827,7 +1073,7 @@ a.btn { text-decoration: none; display: inline-block; }
 
   function rulesBody() {
     var rows = ORDER.map(function (k) {
-      var lock = !S.premium && FREE_KINDS.indexOf(k) < 0 ? ' <span class="chip prem">Premium</span>' : '';
+      var lock = EXTRA.indexOf(k) >= 0 && !owned('k_' + k) ? ' <span class="chip prem">Shop</span>' : '';
       return '<tr><td class="ic">' + icon(k) + '</td><th scope="row">' + ACTIONS[k].name + lock + '</th><td>' + ACTIONS[k].desc + '</td></tr>';
     }).join('');
     return '<ul class="rules">' +
@@ -835,7 +1081,8 @@ a.btn { text-decoration: none; display: inline-block; }
       '<li>Each turn, play <strong>one</strong> action card if you want, then <strong>Hit</strong> (draw) or <strong>Stand</strong>.</li>' +
       '<li>Your first card is face-down to the others. Everything else is face-up.</li>' +
       '<li>If a hit draws an action card, it goes to your hand (limit 3) and your turn ends. You start each round with one.</li>' +
-      '<li>Win a round for 1 point, or 2 if you land exactly on target. First to ' + WIN_POINTS + ' wins the match. Ties score nothing.</li></ul>' +
+      '<li>Win a round for 1 point, or 2 if you land exactly on target. First to ' + WIN_POINTS + ' wins the match. Ties score nothing.</li>' +
+      '<li>Chips are for play only. They are never staked on a result and have no cash value.</li></ul>' +
       '<div class="tablewrap"><table class="cardtable"><tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -850,63 +1097,89 @@ a.btn { text-decoration: none; display: inline-block; }
   }
 
   function introHTML() {
+    var d = dailyInfo();
+    var bonus = d ? '<div class="bonus"><div><b>Daily bonus · day ' + d.day + '</b><span>+' + fmt(d.amount) + ' chips</span></div><button class="btn hit" data-act="claim" type="button">Claim</button></div>' : '';
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
       '<p class="eyebrow">Blackjack with action cards</p><h2 id="ovt">Twist 21</h2>' +
-      '<p>You against Ava and Rex. Hit and stand like blackjack, then play action cards to skip, swap, peek, shield and bend the target itself.</p>' +
-      (S.premium ? '' : '<p class="score">Free: ' + FREE_MATCHES + ' matches a day and 5 of the 9 action cards. Twist 21 Premium is a one-time ' + PRICE + ' purchase: the other 4 action cards, unlimited matches, and the bust-chance meter. No subscription.</p>') +
-      legalHTML() +
+      '<p>You against cautious Ava and reckless Rex. Hit and stand like blackjack, then play action cards to skip, swap, peek, shield and bend the target itself.</p>' +
+      '<p class="score">Free to play. Win rounds to earn chips, then spend them on new cards and table styles. Chips are optional in-app purchases and never staked on a result.</p>' +
+      bonus + legalHTML() +
       '<button id="primary" class="btn hit" data-act="start">Deal me in</button>' +
-      rulesBody() + '</div></div>';
+      '<button class="link" data-act="screen" data-s="rules" type="button">How to play</button></div></div>';
   }
 
   function rulesHTML() {
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
       '<p class="eyebrow">How to play</p><h2 id="ovt">Twist 21 rules</h2>' +
-      '<p class="legalhead">Legal</p>' + legalHTML() +
       rulesBody() +
-      '<button id="primary" class="btn stand" data-act="closerules">Back to the table</button></div></div>';
+      '<button id="primary" class="btn stand" data-act="closescreen">Back to the table</button></div></div>';
   }
 
-  function paywallHTML() {
-    var why = S.paywall && S.paywall.reason === 'limit'
-      ? 'You have played your ' + FREE_MATCHES + ' free matches today. They reset at midnight, or unlock Premium now.'
-      : 'Free play includes 5 of the 9 action cards and ' + FREE_MATCHES + ' matches a day.';
-    var app = inApp();
-    var waiting = app && !S.storeReady
-      ? '<p class="unavailable">The App Store price is not available yet. The amount above is the US price. You can try again in a moment.</p>'
-      : '';
-    var buy = app
-      ? waiting + '<button id="primary" class="btn hit" data-act="nativebuy" type="button">Unlock for ' + PRICE + '</button>'
-      : PAY_URL
-          ? '<a id="primary" class="btn hit" href="' + PAY_URL + '" target="_blank" rel="noopener">Unlock for ' + PRICE + '</a>'
-          : '<p class="unavailable">On the web, redeem a code below. In the iOS app, Premium is an Apple In-App Purchase at the price shown above.</p>';
-    var codeBox = app
-      ? '<div class="codebox"><button class="btn stand" data-act="nativerestore" type="button">Restore purchases</button></div>'
-      : '<div class="codebox"><label for="code">Already paid on the web? Enter your unlock code</label>' +
-        '<div class="coderow"><input id="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Unlock code" value="' + S.codeDraft.replace(/"/g, '') + '">' +
-        '<button class="btn stand" data-act="redeem" type="button">Redeem</button></div>' +
-        '<p class="codemsg" role="status">' + S.codeMsg + '</p></div>';
-    var locked = ORDER.filter(function (k) { return FREE_KINDS.indexOf(k) < 0; }).map(function (k) {
-      return '<li>' + icon(k) + '<span><strong>' + ACTIONS[k].name + '</strong> — ' + ACTIONS[k].desc + '</span></li>';
-    }).join('');
+  function menuHTML() {
     return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
-      '<p class="eyebrow">Lifetime unlock · one-time purchase</p><h2 id="ovt">Twist 21 Premium</h2>' +
-      '<p class="priceamount">' + PRICE + '</p>' +
-      '<p class="pricenote">Charged once by Apple. Does not renew. No subscription.</p>' +
-      '<p>' + why + '</p>' +
-      '<p class="legalhead">What you unlock</p>' +
-      '<ul class="perks">' + locked +
-      '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span><strong>Unlimited matches</strong> — the 3-a-day limit goes away.</span></li>' +
-      '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span><strong>Bust-chance meter</strong> — the odds if you hit, shown on your turn.</span></li></ul>' +
-      legalHTML() +
-      buy +
-      codeBox +
-      '<button class="link" data-act="closepay" type="button">Maybe later</button></div></div>';
+      '<h2 id="ovt">Menu</h2>' +
+      '<div class="menu">' +
+      '<button class="btn stand" data-act="screen" data-s="rules" type="button">How to play</button>' +
+      '<button class="btn stand" data-act="screen" data-s="stats" type="button">Stats</button>' +
+      '<button class="btn stand" data-act="screen" data-s="shop" type="button">Shop</button>' +
+      '<button class="btn stand" data-act="sound" type="button">Sound: ' + (G.mute ? 'off' : 'on') + '</button></div>' +
+      '<p class="legalhead">Legal</p>' + legalHTML() +
+      '<button id="primary" class="btn hit" data-act="closescreen">Back to the table</button></div></div>';
+  }
+
+  function statsHTML() {
+    var st = G.stats;
+    var rate = st.matches ? Math.round(st.wins / st.matches * 100) + '%' : '–';
+    var top = '–', n = 0;
+    for (var k in st.cards) if (st.cards[k] > n && ACTIONS[k]) { n = st.cards[k]; top = ACTIONS[k].name + ' (' + n + ')'; }
+    function cell(label, v) { return '<div class="stat"><b>' + v + '</b><span>' + label + '</span></div>'; }
+    return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
+      '<p class="eyebrow">Your record</p><h2 id="ovt">Stats</h2>' +
+      '<div class="stats">' + cell('Win rate', rate) + cell('Matches', st.matches) + cell('Best streak', st.best) + cell('Perfect 21s', st.exact) +
+      cell('Rounds won', st.roundWins) + cell('Busts', st.busts) + cell('Biggest win', st.biggest ? '+' + st.biggest + ' pts' : '–') + cell('Most-used card', top) + '</div>' +
+      '<button id="primary" class="btn hit" data-act="closescreen">Back to the table</button></div></div>';
+  }
+
+  function shopHTML() {
+    var tab = S.shopTab;
+    var tabs = ['chips', 'cards', 'style'].map(function (t) {
+      return '<button class="tab' + (t === tab ? ' on' : '') + '" data-act="shoptab" data-tab="' + t + '" type="button">' + (t === 'chips' ? 'Chips' : t === 'cards' ? 'Cards' : 'Style') + '</button>';
+    }).join('');
+    var body = '';
+    if (tab === 'chips') {
+      body = '<p class="score">Chips buy new cards and styles. They are never staked on a result and have no cash value.</p><div class="packs">' +
+        PACKS.map(function (p) { return '<div class="pack"><span><i class="coin"></i> ' + fmt(p.chips) + '</span><b>' + p.price + '</b></div>'; }).join('') + '</div>' +
+        (inApp()
+          ? '<button class="btn hit" data-act="buychips" type="button">Get chips</button>'
+          : '<p class="unavailable">Chip packs are sold inside the iOS app.</p>') +
+        '<p class="score">Free chips: win rounds, and claim the daily bonus every day.</p>';
+    } else if (tab === 'cards') {
+      body = '<p class="score">New action cards join the deck from the next round.</p><ul class="perks shoplist">' + EXTRA.map(function (k) {
+        var has = owned('k_' + k);
+        var btn = has ? '<span class="chip win">Owned</span>' : '<button class="buy" data-act="buycard" data-k="' + k + '" type="button"><i class="coin"></i> ' + fmt(EXTRA_PRICE[k]) + '</button>';
+        return '<li>' + icon(k) + '<span><strong>' + ACTIONS[k].name + '</strong> — ' + ACTIONS[k].desc + '</span>' + btn + '</li>';
+      }).join('') + '</ul>';
+    } else {
+      body = '<p class="legalhead">Card backs</p><div class="styles">' + BACKS.map(function (b) {
+        var has = b.price === 0 || owned('b_' + b.id), on = G.back === b.id;
+        return '<button class="style' + (on ? ' on' : '') + '" data-act="styleitem" data-kind="b" data-id="' + b.id + '" type="button"><span class="card back bk-' + b.id + '" style="--cw:30px;--ch:42px"><b>21</b></span><small>' + b.name + '</small><em>' + (on ? 'Equipped' : has ? 'Use' : fmt(b.price)) + '</em></button>';
+      }).join('') + '</div>' +
+      '<p class="legalhead">Table</p><div class="styles">' + THEMES.map(function (t) {
+        var has = t.price === 0 || owned('t_' + t.id), on = G.theme === t.id;
+        return '<button class="style' + (on ? ' on' : '') + '" data-act="styleitem" data-kind="t" data-id="' + t.id + '" type="button"><span class="sw" style="background:' + t.sw + '"></span><small>' + t.name + '</small><em>' + (on ? 'Equipped' : has ? 'Use' : fmt(t.price)) + '</em></button>';
+      }).join('') + '</div>';
+    }
+    return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ovt"><div class="dialog">' +
+      '<p class="eyebrow"><i class="coin"></i> ' + fmt(G.chips) + ' chips</p><h2 id="ovt">Shop</h2>' +
+      '<div class="tabs">' + tabs + '</div>' + body + (S.toast ? '<p class="codemsg" role="status">' + S.toast + '</p>' : '') +
+      '<button id="primary" class="btn stand" data-act="closescreen">Back to the table</button></div></div>';
   }
 
   function overlayHTML() {
-    if (S.paywall) return paywallHTML();
-    if (S.rules) return rulesHTML();
+    if (S.screen === 'shop') return shopHTML();
+    if (S.screen === 'stats') return statsHTML();
+    if (S.screen === 'rules') return rulesHTML();
+    if (S.screen === 'menu') return menuHTML();
     if (S.phase === 'intro') return introHTML();
     if (S.phase === 'roundEnd' || S.phase === 'matchEnd') return resultHTML();
     return '';
@@ -914,48 +1187,57 @@ a.btn { text-decoration: none; display: inline-block; }
 
   function render() {
     var me = S.players[0];
-    var oppsHTML = S.players.map(function (p, i) { return i ? seatHTML(p, i) : ''; }).join('');
-    var youHTML = seatHTML(me, 0) + handHTML(me) + controlsHTML(me);
-    var feed = S.log.slice(-4).map(function (m, i, a) { return '<li' + (i === a.length - 1 ? ' class="new"' : '') + '>' + m + '</li>'; }).join('');
-    var order = S.dir === 1 ? 'You → Ava → Rex' : 'You → Rex → Ava';
-    var score = S.players.map(function (p) {
-      var pips = '';
-      for (var i = 0; i < WIN_POINTS; i++) pips += '<i class="' + (i < p.points ? 'on' : '') + '"></i>';
-      return '<div class="sc' + (p.human ? ' me' : '') + '"><span>' + p.name + '</span><span class="pips" aria-label="' + p.points + ' points">' + pips + '</span></div>';
-    }).join('');
-    var overlay = overlayHTML();
     if (!hasDom) return;
+    var oppsHTML = S.players.map(function (p, i) { return i ? seatHTML(p, i) : ''; }).join('');
+    var tip = tipText();
+    var youHTML = (tip ? '<p class="tip">' + tip + '</p>' : '') + seatHTML(me, 0) + handHTML(me) + controlsHTML(me);
+    var feed = S.log.slice(-2).map(function (m, i, a) { return '<li' + (i === a.length - 1 ? ' class="new"' : '') + '>' + m + '</li>'; }).join('');
+    var order = S.dir === 1 ? 'You → Ava → Rex' : 'You → Rex → Ava';
+    var overlay = overlayHTML();
 
     $('#opps').innerHTML = oppsHTML;
     $('#you').innerHTML = youHTML;
     $('#feed').innerHTML = feed;
     $('#status').textContent = statusText();
-    $('#score').innerHTML = score;
-    $('#meta').textContent = 'Round ' + S.round + ' · order ' + order;
+    $('#meta').textContent = 'Round ' + S.round + ' · ' + order;
+    $('#chipsN').textContent = fmt(G.chips);
+    document.body.className = 'th-' + G.theme;
     var tn = $('#tnum');
     if (tn.textContent !== String(S.target)) {
       tn.textContent = S.target;
       var ring = $('#ring');
       ring.classList.remove('twist'); void ring.offsetWidth; ring.classList.add('twist');
     }
-    var pb0 = $('#premBtn');
-    pb0.textContent = S.premium ? 'Premium unlocked' : 'Go Premium';
-    pb0.disabled = S.premium;
     if (overlay !== S.lastOverlay) { $('#overlay').innerHTML = overlay; S.lastOverlay = overlay; }
-    var key = S.paywall ? 'paywall' : S.rules ? 'rules' : S.phase;
+    var key = S.screen ? S.screen : S.phase;
     if (overlay && S.overlayKey !== key) { var pb = $('#primary'); if (pb) pb.focus(); }
     S.overlayKey = overlay ? key : '';
 
     S.players.forEach(function (p) { p.cards.forEach(function (c) { S.seen.add(c.id); }); });
     if (S.roundEnded) S.flipped = true;
+    S.shake = [];
   }
 
   // ---------- events ----------
+  function open(s) { S.screen = s; S.toast = ''; render(); }
+  function buyStyle(kind, id) {
+    var list = kind === 'b' ? BACKS : THEMES;
+    var item = list.filter(function (x) { return x.id === id; })[0];
+    if (!item) return;
+    var key = kind + '_' + id;
+    if (item.price > 0 && !owned(key)) {
+      if (!spend(item.price)) { S.toast = 'Not enough chips. Win rounds or claim the daily bonus.'; render(); return; }
+      G.owned[key] = true; sfx('chip');
+    }
+    if (kind === 'b') G.back = id; else G.theme = id;
+    S.toast = ''; persist(); render();
+  }
   function onClick(e) {
     var el = e.target.closest('[data-act]');
     if (!el || el.disabled) return;
     var a = el.dataset.act, me = S.players[0];
-    if (a === 'link') { if (inApp()) { e.preventDefault(); toApp('link', el.dataset.url); } return; }
+    if (a === 'link') { if (inApp()) { e.preventDefault(); bridge('link', { url: el.dataset.url }); } return; }
+    ac(); // unlock audio on the first tap
     if (a === 'card') {
       var k = el.dataset.k;
       if (!S.humanTurn || S.acted || !valid(me, k)) return;
@@ -965,60 +1247,65 @@ a.btn { text-decoration: none; display: inline-block; }
     } else if (a === 'cancel') { S.pending = null; render(); }
     else if (a === 'hit') humanHit();
     else if (a === 'stand') humanStand();
-    else if (a === 'rulesopen') { S.rules = true; render(); }
-    else if (a === 'closerules') { S.rules = false; render(); }
-    else if (a === 'start') { if (allowMatch()) beginRound(); }
+    else if (a === 'start') { beginRound(); }
     else if (a === 'next') nextRound();
-    else if (a === 'newmatch') { if (allowMatch()) { initMatch(); beginRound(); } }
-    else if (a === 'paywall') {
-      if (S.premium) return;
-      S.paywall = { reason: 'upsell' }; S.codeMsg = ''; render();
+    else if (a === 'newmatch') { initMatch(); beginRound(); }
+    else if (a === 'menu') open('menu');
+    else if (a === 'shop') { S.shopTab = 'chips'; open('shop'); }
+    else if (a === 'screen') open(el.dataset.s);
+    else if (a === 'closescreen') { S.screen = null; render(); }
+    else if (a === 'shoptab') { S.shopTab = el.dataset.tab; S.toast = ''; render(); }
+    else if (a === 'sound') { G.mute = !G.mute; persist(); render(); }
+    else if (a === 'claim') { var d = dailyInfo(); if (d) { G.streak = d.day; G.last = dayKey(0); addChipsQuiet(d.amount); sfx('chip'); haptic('success'); render(); } }
+    else if (a === 'odds') {
+      if (!S.humanTurn || S.oddsShown) return;
+      if (spend(ODDS_COST)) { S.oddsShown = true; sfx('chip'); render(); }
+      else { S.shopTab = 'chips'; open('shop'); S.toast = 'You need ' + ODDS_COST + ' chips for the odds meter.'; render(); }
     }
-    else if (a === 'closepay') { S.paywall = null; render(); }
-    else if (a === 'redeem') redeem();
-    else if (a === 'nativebuy') toApp('purchase');
-    else if (a === 'nativerestore') toApp('restore');
+    else if (a === 'buycard') {
+      var kk = el.dataset.k;
+      if (owned('k_' + kk)) return;
+      if (spend(EXTRA_PRICE[kk])) { G.owned['k_' + kk] = true; persist(); sfx('chip'); haptic('success'); S.toast = ACTIONS[kk].name + ' unlocked. It joins the deck next round.'; render(); }
+      else { S.toast = 'Not enough chips. Win rounds, claim the daily bonus, or get more chips.'; render(); }
+    }
+    else if (a === 'styleitem') buyStyle(el.dataset.kind, el.dataset.id);
+    else if (a === 'buychips') bridge('paywall');
   }
-  // The Expo app passes the store's localized price so the paywall always shows the real amount.
-  function setPrice(s) { if (s) { PRICE = String(s); render(); } }
-  function setStoreReady(on) { S.storeReady = !!on; render(); }
-  // The Expo app calls this after StoreKit confirms the unlock.
-  function setPremium(on) {
-    S.premium = !!on;
-    if (S.premium) { S.paywall = null; log('Premium unlocked. The full deck arrives next round.'); }
+  // The Expo app calls these after RevenueCat confirms a purchase and passes localized prices.
+  function setPackPrices(map) {
+    PACKS.forEach(function (p) { if (map && map[p.id]) p.price = String(map[p.id]); });
     render();
   }
-  function redeem() {
-    var el = hasDom && $('#code');
-    var v = el ? el.value : S.codeDraft;
-    S.codeDraft = v;
-    if (tryRedeem(v)) {
-      S.paywall = null; S.codeDraft = ''; S.codeMsg = '';
-      log('Premium unlocked. The full deck arrives next round.');
-    } else {
-      S.codeMsg = v.trim() ? 'That code is not valid. Check it and try again.' : 'Enter the code you received after paying.';
+  function chipsPurchased(productId, txId) {
+    var pack = PACKS.filter(function (p) { return p.id === productId; })[0];
+    if (!pack) return false;
+    if (txId) {
+      if (G.txs.indexOf(txId) >= 0) return false;
+      G.txs.push(txId); if (G.txs.length > 60) G.txs.shift();
     }
+    addChipsQuiet(pack.chips);
+    S.toast = '+' + fmt(pack.chips) + ' chips added.';
+    sfx('chip'); haptic('success');
     render();
+    return true;
   }
 
   if (hasDom) {
     document.addEventListener('click', onClick);
-    document.addEventListener('input', function (e) { if (e.target && e.target.id === 'code') S.codeDraft = e.target.value; });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && e.target && e.target.id === 'code') { redeem(); return; }
-      if (e.key === 'Escape') {
-        if (S.paywall) { S.paywall = null; render(); }
-        else if (S.rules) { S.rules = false; render(); }
-      }
+      if (e.key === 'Escape' && S.screen) { S.screen = null; render(); }
     });
     initMatch();
   }
 
-  var api = { S: S, setPremium: setPremium, setPrice: setPrice, setStoreReady: setStoreReady, FREE_KINDS: FREE_KINDS, ORDER: ORDER, HASHES: HASHES, sha256: sha256, codeHash: codeHash, tryRedeem: tryRedeem, allowMatch: allowMatch, matchesToday: matchesToday, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS, render: render };
+  var api = {
+    S: S, G: G, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, WIN_POINTS: WIN_POINTS,
+    render: render, setPackPrices: setPackPrices, chipsPurchased: chipsPurchased, PACKS: PACKS, BASE: BASE, EXTRA: EXTRA, ORDER: ORDER,
+    dailyInfo: dailyInfo, bustRisk: bustRisk, kinds: kinds, valid: valid, doAction: doAction
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else if (typeof window !== 'undefined') window.T21 = api;
 })();
-
 </script>
 </body>
 </html>
