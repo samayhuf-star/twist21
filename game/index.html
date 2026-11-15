@@ -322,6 +322,23 @@ body.th-midnight .seat { background: var(--table); border-color: var(--edge); }
 .deal { animation: deal .42s cubic-bezier(.2,.8,.3,1) both; }
 @media (max-height: 700px) { .dealer small { display: none; } .dealer svg { width: 40px; height: 40px; } .dealer { width: 40px; } .shoe { height: 34px; width: 24px; } }
 @media (prefers-reduced-motion: reduce) { .dealer.dealing .flick { animation: none; } }
+
+/* ---- v5: oval casino table ---- */
+.oval { flex: none; position: relative; margin: 2px 0 0; padding: 12px 22px 30px; border-radius: 50% / 26%;
+  border: 9px solid transparent;
+  background: radial-gradient(ellipse at 50% 35%, #208050 0%, #15603b 55%, #0c3b26 100%) padding-box,
+              linear-gradient(135deg, #8a5a2b, #4a2810 45%, #9b6a35 70%, #3a1e0c) border-box;
+  box-shadow: 0 0 0 2px #d4af4f, 0 0 0 4px #2a1608, inset 0 0 34px rgba(0,0,0,.55), 0 14px 26px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; gap: 8px; }
+.oval::before { content: ""; position: absolute; inset: 6px; border: 1.5px dashed rgba(255,210,63,.35); border-radius: 50% / 26%; pointer-events: none; }
+.oval .dealerbar { background: none; border: 0; padding: 0; justify-content: center; position: relative; z-index: 1; }
+.oval main { position: relative; z-index: 1; }
+body:not(.th-midnight) .oval .seat { background: rgba(4, 24, 14, .6); }
+.you .seat { border-radius: 26px 26px 14px 14px; }
+body.th-midnight .oval { background: radial-gradient(ellipse at 50% 35%, #2f2b78 0%, #1a1840 60%, #100e26 100%) padding-box, linear-gradient(135deg, #8a5a2b, #4a2810 45%, #9b6a35 70%, #3a1e0c) border-box; }
+body.th-wine .oval { background: radial-gradient(ellipse at 50% 35%, #7a2650 0%, #4a1838 60%, #260e1e 100%) padding-box, linear-gradient(135deg, #8a5a2b, #4a2810 45%, #9b6a35 70%, #3a1e0c) border-box; }
+body.th-arctic .oval { background: radial-gradient(ellipse at 50% 35%, #2f7aa0 0%, #1a4560 60%, #0c2536 100%) padding-box, linear-gradient(135deg, #8a5a2b, #4a2810 45%, #9b6a35 70%, #3a1e0c) border-box; }
+@media (max-height: 700px) { .oval { padding: 8px 20px 22px; border-width: 7px; } .oval::before { inset: 4px; } .oval { gap: 4px; } }
 </style>
 </head>
 <body>
@@ -335,10 +352,8 @@ body.th-midnight .seat { background: var(--table); border-color: var(--edge); }
     <div class="target" aria-label="Current target"><div class="ring" id="ring"></div><b id="tnum">21</b><small>target</small></div>
   </header>
   <div class="bar"><div id="meta"></div></div>
-  <main>
-    <div class="opps" id="opps"></div>
-  </main>
-  <div class="dealerbar" aria-live="polite">
+  <div class="oval">
+    <div class="dealerbar" aria-live="polite">
     <div class="dealer" id="dealer" aria-hidden="true">
       <svg viewBox="0 0 64 64" role="img" aria-label="Dealer">
         <rect x="14" y="40" width="36" height="24" rx="10" fill="#1b1b2e"/>
@@ -354,6 +369,10 @@ body.th-midnight .seat { background: var(--table); border-color: var(--edge); }
     </div>
     <div class="dealtext"><p id="status"></p><ul class="feed" id="feed"></ul></div>
     <div class="shoe" aria-hidden="true"><i></i><i></i><i></i></div>
+  </div>
+    <main>
+    <div class="opps" id="opps"></div>
+  </main>
   </div>
   <div class="you" id="you"></div>
 </div>
