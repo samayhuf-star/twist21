@@ -2,7 +2,7 @@
 
 **Date:** 14 November 2026
 **Packet:** branch `cursor/app-store-submission-422d`
-**App:** Twist 21 · bundle `com.samay.twist21` · ASC app `6833334755` · version `1.0.0` · iOS build number **5** (`app.json`)
+**App:** Twist 21 · bundle `com.samay.twist21` · ASC app `6833334755` · version `1.0.0` · iOS build number **6** (`app.json`)
 **Version source:** `eas.json` `appVersionSource` is `local`. The production profile does not auto-increment.
 **Purchase:** one non-consumable, `twist21_premium`, display name Twist 21 Premium, US $39.99, StoreKit via `expo-iap`. No other product id is referenced by this version’s code, listing, or review notes.
 **Decision: DO NOT SUBMIT** until the NEEDS ASC and NEEDS DEVICE rows are cleared. There is no remaining code FAIL.
@@ -28,7 +28,7 @@ The terms page still says product ID `twist21_lifetime`. This version sells `twi
 
 | ID | Area | Result | Evidence | Notes |
 | --- | --- | --- | --- | --- |
-| A1 | Binary matches this commit, version, and build | NEEDS ASC | `app.json` version `1.0.0`, `ios.buildNumber` `5`, bundle `com.samay.twist21`. `eas.json` `appVersionSource: local`. Production profile has no `autoIncrement`. | Upload a production build of this commit as build 5. Build 4 is the older `main` commit. |
+| A1 | Binary matches this commit, version, and build | NEEDS ASC | `app.json` version `1.0.0`, `ios.buildNumber` `6`, bundle `com.samay.twist21`. `eas.json` `appVersionSource: local`. Production profile has no `autoIncrement`. | Upload a production build of this commit as build 6. Build 5 still loaded Google Fonts. |
 | A2 | Clean install does not crash | NEEDS DEVICE | No TestFlight install in this session. | Cold-launch three times on a physical iPhone after deleting the app. |
 | A3 | Core journeys work | NEEDS DEVICE | Play, paywall, purchase, and restore are wired in `App.tsx` and `src/purchases.ts`. | Walk them on device. |
 | A4 | No placeholder UI | PASS | Shipping sources have no “coming soon”, lorem, or “purchases unavailable”. If the product has not loaded, the paywall still shows the US price, Restore, and the legal links, and says the App Store price is not available yet. | `game/index.html` paywall. |
@@ -45,7 +45,7 @@ The terms page still says product ID `twist21_lifetime`. This version sells `twi
 | B3 | Credentials per role | N/A | No roles. | |
 | B4 | Backends live from a clean install | PASS | No app server. The game HTML is inside the binary. Purchases call StoreKit through `expo-iap` (`src/purchases.ts`). | If `twist21_premium` is not available from the store, the paywall keeps the US price and tells the player to try again. |
 | B5 | Review notes are a test script | PASS | `store/review-notes.md`: how to play, how to open the paywall, what it must show, restore, legal links, product id `twist21_premium`, StoreKit, no login. | Fill the device line before pasting (B10). |
-| B6 | Every IAP is complete and visible | NEEDS ASC | Code requests only `twist21_premium`. The 12 Nov readout had that product at $2.99 and `MISSING_METADATA`. | Set the price to US $39.99, display name Twist 21 Premium, add the review screenshot, and submit it with build 5. |
+| B6 | Every IAP is complete and visible | NEEDS ASC | Code requests only `twist21_premium`. The 12 Nov readout had that product at $2.99 and `MISSING_METADATA`. | Set the price to US $39.99, display name Twist 21 Premium, add the review screenshot, and submit it with build 6. |
 | B7 | Metadata URLs return 200 | PASS | Privacy, terms, support, and marketing URLs in the curl table all returned **200**. | |
 | B8 | Support contact is real | PASS | Support page **200** and names Samay Vashsht, `samayhuf@gmail.com`. | ASC review phone is still I3. |
 | B9 | External services named in notes | PASS | `store/review-notes.md`: Apple StoreKit only. | |
@@ -91,7 +91,7 @@ The terms page still says product ID `twist21_lifetime`. This version sells `twi
 | E7 | No forced rating or cross-download | PASS | No rating prompt and no install-another-app gate. | |
 | E8 | Works without another app | PASS | First screen is the game. | |
 | F1 | Privacy policy discloses collection and deletion | PASS | Live privacy page **200**. It names Samay Vashsht, on-device progress, Apple In-App Purchase, no third-party payment processor, no ads or tracking, retention until delete, and `samayhuf@gmail.com`. | The page also says the game uses virtual chips. This build scores points and does not sell a chip balance. |
-| F2 | Nutrition labels match the SDKs | NEEDS ASC | Suggested label in `store/listing.md`: Data Not Collected. Apple processes the payment. The unlock flag stays on the device. | Not entered in ASC. |
+| F2 | Nutrition labels match the SDKs | NEEDS ASC | Suggested label in `store/listing.md`: Data Not Collected. The bundled game makes no third-party network calls: system fonts only, no Google Fonts, CDNs, analytics, or remote images. Apple processes the payment. The unlock flag stays on the device. Privacy, Terms, and Support open only when the player taps them. | Not entered in ASC. |
 | F3 | Privacy manifest and required-reason APIs | PASS | `app.json` `ios.privacyManifests`: tracking false, UserDefaults `CA92.1`. | Confirm `PrivacyInfo.xcprivacy` in the uploaded IPA if Apple sends ITMS-91053. |
 | F4 | Third-party SDK manifests | PASS | `expo-iap` ^6.4.3 and Expo SDK 58.0.25. `expo-doctor` 20/20. The export logged the expo-iap config plugin. | |
 | F5 | Purpose strings for every permission | PASS | Expo config has no camera, photo, microphone, location, tracking, contacts, or HealthKit keys. | |
@@ -140,13 +140,14 @@ The terms page still says product ID `twist21_lifetime`. This version sells `twi
 - The only product id in code is `twist21_premium`. A verified purchase or restore is finished with `finishTransaction` and saved with AsyncStorage (`src/entitlement.ts`).
 - If the product has not loaded, the paywall still shows the US $39.99 price, Restore, and the legal links, and says the App Store price is not available yet.
 - The game is the bundled HTML. `GAME_BASE_URL` is gone, so the WebView does not use the missing twist21 Pages site.
-- Legal links are the app-legal URLs above. `ios.buildNumber` is 5. `appVersionSource` is local. Production does not auto-increment.
+- Legal links are the app-legal URLs above. `ios.buildNumber` is 6. `appVersionSource` is local. Production does not auto-increment.
+- The bundled HTML no longer loads Google Fonts (no `fonts.googleapis.com` or `fonts.gstatic.com`). Body uses `-apple-system, 'SF Pro Rounded', system-ui`. Display uses `-apple-system` at weight 900, with `'Arial Black'` as the heavy fallback. No other shipping source fetches a third party.
 - `app.json` plugins: `expo-splash-screen`, `expo-status-bar`, `expo-iap`.
 
 ## Before you submit
 
 1. On `samayhuf-star/app-legal`, change the terms page product id from `twist21_lifetime` to `twist21_premium`. This session could not push (403).
-2. In App Store Connect, set the existing `twist21_premium` price to **US $39.99**, display name **Twist 21 Premium**, complete its metadata, and upload `store/iap-review-paywall-1290x2796.png`. Submit that product with build 5. Do not add another product id.
+2. In App Store Connect, set the existing `twist21_premium` price to **US $39.99**, display name **Twist 21 Premium**, complete its metadata, and upload `store/iap-review-paywall-1290x2796.png`. Submit that product with build 6. Do not add another product id.
 3. Paid Applications Agreement, tax, and banking must be active.
 4. Paste `store/listing.md` and, after the device line is filled in, `store/review-notes.md`. License agreement: Apple’s standard EULA. Privacy label: Data Not Collected. Age rating: simulated gambling, no real-money prize. Export: exempt.
-5. Build this commit with the production profile and upload it as build 5. On a physical iPhone: cold launch, play, buy in Sandbox, force-quit, relaunch, delete, restore. Also launch in iPad compatibility mode.
+5. Build this commit with the production profile and upload it as build 6. On a physical iPhone: cold launch, play, buy in Sandbox, force-quit, relaunch, delete, restore. Also launch in iPad compatibility mode.
