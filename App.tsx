@@ -4,31 +4,36 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView as RNWebView, WebViewMessageEvent } from 'react-native-webview';
 import gameHtml from './src/gameHtml';
-import { usePremiumPurchases } from './src/purchases';
+import { buyPack, initPurchases, loadOffers, restore, showChipPaywall } from './src/purchases';
 
 // react-native-webview 14 ships props typings that collapse to `never` under React 19 types.
 const WebView = RNWebView as unknown as React.ComponentType<any>;
-const BG = '#100e26';
+const BG = '#0b2a1c';
 
 function Game() {
   const insets = useSafeAreaInsets();
   const web = useRef<{ injectJavaScript: (js: string) => void } | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const iap = usePremiumPurchases();
 
   const run = (js: string) => web.current?.injectJavaScript(`${js}; true;`);
-  const pushPremium = (on: boolean) => run(`window.T21 && window.T21.setPremium(${on})`);
-  const pushPrice = (price: string) => run(`window.T21 && window.T21.setPrice(${JSON.stringify(price)})`);
+  const grant = (id: string) => run(`window.T21 && window.T21.grantPack(${JSON.stringify(id)})`);
 
   useEffect(() => {
     if (!loaded) return;
-    pushPremium(iap.owned);
-    pushPrice(iap.price);
-    run(`window.T21 && window.T21.setStoreReady(${iap.productReady})`);
-  }, [loaded, iap.owned, iap.price, iap.productReady]);
+    const ready = initPurchases();
+    if (!ready) {
+      run('window.T21 && window.T21.setStoreReady(false)');
+      return;
+    }
+    loadOffers()
+      .then((offers) => {
+        run(`window.T21 && window.T21.setOffers(${JSON.stringify(offers)})`);
+      })
+      .catch(() => run('window.T21 && window.T21.setStoreReady(false)'));
+  }, [loaded]);
 
   const onMessage = async (e: WebViewMessageEvent) => {
-    let msg: { type?: string; url?: string };
+    let msg: { type?: string; url?: string; id?: string };
     try {
       msg = JSON.parse(e.nativeEvent.data);
     } catch {
@@ -38,28 +43,26 @@ function Game() {
       Linking.openURL(msg.url);
       return;
     }
-    if (msg.type === 'purchase') {
-      const result = await iap.purchase();
-      if (result.outcome === 'purchased') pushPremium(true);
-      else if (result.outcome === 'unavailable') {
-        Alert.alert(
-          'Premium',
-          'Twist 21 Premium could not be loaded from the App Store. Please try again in a moment.'
-        );
-      } else if (result.outcome === 'failed') {
-        Alert.alert('Purchase failed', result.message ?? 'Please try again.');
+    if (msg.type === 'buy' && typeof msg.id === 'string') {
+      const r = await buyPack(msg.id);
+      if (r.ok) grant(r.id);
+      else if (!r.cancelled) Alert.alert('Purchase failed', r.message ?? 'Please try again.');
+      return;
+    }
+    if (msg.type === 'paywall') {
+      try {
+        await showChipPaywall(grant);
+      } catch (err) {
+        Alert.alert('Chip packs', err instanceof Error ? err.message : 'Please try again.');
       }
       return;
     }
     if (msg.type === 'restore') {
       try {
-        if (await iap.restore()) pushPremium(true);
-        else Alert.alert('Nothing to restore', 'No earlier Premium purchase was found for this store account.');
+        await restore();
+        Alert.alert('Restore complete', 'Chip packs are consumable, so they are not restored. Your saved chips stay on this device.');
       } catch (err) {
-        Alert.alert(
-          'Restore failed',
-          err instanceof Error ? err.message : 'Please try again.'
-        );
+        Alert.alert('Restore failed', err instanceof Error ? err.message : 'Please try again.');
       }
     }
   };
@@ -79,7 +82,6 @@ function Game() {
         setSupportMultipleWindows={false}
         onLoadEnd={() => setLoaded(true)}
         onShouldStartLoadWithRequest={(req: { url: string }) => {
-          // The game is the bundled HTML. Anything else opens in the system browser.
           if (req.url === 'about:blank') return true;
           if (req.url.startsWith('https://')) Linking.openURL(req.url);
           return false;

@@ -1,163 +1,76 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
-import {
-  getAvailablePurchases,
-  isUserCancelledError,
-  useIAP,
-  type Purchase,
-} from 'expo-iap';
+import Purchases, { LOG_LEVEL, type PurchasesPackage } from 'react-native-purchases';
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 
-import { lifetimePriceLabel, PRODUCT_ID } from './config';
-import { loadOwned, saveOwned } from './entitlement';
+import { CHIP_PACKS, OFFERING_ID } from './config';
 
-export type PurchaseOutcome = 'purchased' | 'cancelled' | 'unavailable' | 'failed';
+const IOS_KEY = process.env.EXPO_PUBLIC_RC_IOS_KEY ?? '';
+let configured = false;
 
-export type PurchaseResult = {
-  outcome: PurchaseOutcome;
-  message: string | null;
-};
-
-function ownsPremium(purchase: Purchase): boolean {
-  return purchase.productId === PRODUCT_ID && purchase.purchaseState !== 'pending';
+export function initPurchases(): boolean {
+  if (configured) return true;
+  if (Platform.OS !== 'ios' || !IOS_KEY) return false;
+  Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN);
+  Purchases.configure({ apiKey: IOS_KEY });
+  configured = true;
+  return true;
 }
 
-/**
- * StoreKit 2 via expo-iap. One non-consumable, twist21_premium.
- * The same purchase / restore shape as the abs-challenge app: useIAP, finish the
- * transaction, then keep the unlock in local storage.
- */
-export function usePremiumPurchases() {
-  const [owned, setOwned] = useState(false);
-  const [price, setPrice] = useState(lifetimePriceLabel);
-  const [productReady, setProductReady] = useState(false);
-  const [lastError, setLastError] = useState<string | null>(null);
-  const errorRef = useRef<string | null>(null);
-  const pending = useRef<((result: PurchaseResult) => void) | null>(null);
+export type Offer = { id: string; price: string };
 
-  const note = useCallback((message: string | null) => {
-    errorRef.current = message;
-    setLastError(message);
-  }, []);
+async function packages(): Promise<PurchasesPackage[]> {
+  const offerings = await Purchases.getOfferings();
+  const o = offerings.all[OFFERING_ID] ?? offerings.current;
+  return o?.availablePackages ?? [];
+}
 
-  const settle = useCallback((outcome: PurchaseOutcome) => {
-    const resolve = pending.current;
-    pending.current = null;
-    resolve?.({ outcome, message: errorRef.current });
-  }, []);
+/** Localized prices for the chip packs, for the in-game shop. */
+export async function loadOffers(): Promise<Offer[]> {
+  if (!configured) return [];
+  const list = await packages();
+  return list
+    .filter((p) => CHIP_PACKS[p.product.identifier])
+    .map((p) => ({ id: p.product.identifier, price: p.product.priceString }));
+}
 
-  const grant = useCallback(async () => {
-    await saveOwned();
-    setOwned(true);
-  }, []);
+export type BuyResult =
+  | { ok: true; id: string }
+  | { ok: false; cancelled: boolean; message?: string };
 
-  const {
-    connected,
-    products,
-    fetchProducts,
-    requestPurchase,
-    finishTransaction,
-    restorePurchases,
-    getAvailablePurchases: refreshOwned,
-  } = useIAP({
-    onPurchaseSuccess: (purchase) => {
-      void (async () => {
-        try {
-          if (!ownsPremium(purchase)) {
-            note('The store returned a different product.');
-            settle('failed');
-            return;
-          }
-          await finishTransaction({ purchase, isConsumable: false });
-          await grant();
-          settle('purchased');
-        } catch (err) {
-          note(
-            err instanceof Error
-              ? err.message
-              : 'The purchase finished in the store but could not be saved on this device. Try Restore.'
-          );
-          settle('failed');
-        }
-      })();
-    },
-    onPurchaseError: (error) => {
-      if (isUserCancelledError(error)) {
-        settle('cancelled');
-        return;
-      }
-      note(error.message || 'Purchase failed. Please try again.');
-      settle('failed');
-    },
-    onError: (error) => {
-      note(error.message || 'The App Store could not be reached.');
-    },
-  });
+export async function buyPack(id: string): Promise<BuyResult> {
+  if (!configured) return { ok: false, cancelled: false, message: 'Purchases are not available in this build.' };
+  try {
+    const pkg = (await packages()).find((p) => p.product.identifier === id);
+    if (!pkg) return { ok: false, cancelled: false, message: 'That chip pack is not available right now.' };
+    await Purchases.purchasePackage(pkg);
+    return { ok: true, id };
+  } catch (e: any) {
+    if (e?.userCancelled) return { ok: false, cancelled: true };
+    return { ok: false, cancelled: false, message: e?.message ?? 'Purchase failed. Please try again.' };
+  }
+}
 
-  useEffect(() => {
-    void loadOwned().then((on) => {
-      if (on) setOwned(true);
-    });
-  }, []);
+/** RevenueCat's own paywall for the chip offering. Purchases made inside it are reported back by id. */
+export async function showChipPaywall(onPurchased: (id: string) => void): Promise<void> {
+  if (!configured) return;
+  const offerings = await Purchases.getOfferings();
+  const offering = offerings.all[OFFERING_ID] ?? offerings.current;
+  if (!offering) return;
+  const r = await RevenueCatUI.presentPaywall({
+    offering,
+    // consumable purchases: grant by the product that was bought
+  } as any);
+  if (r === PAYWALL_RESULT.PURCHASED) {
+    const info = await Purchases.getCustomerInfo();
+    // newest non-subscription transaction is the pack just bought
+    const tx = [...info.nonSubscriptionTransactions].sort(
+      (a, b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()
+    )[0];
+    if (tx && CHIP_PACKS[tx.productIdentifier]) onPurchased(tx.productIdentifier);
+  }
+}
 
-  useEffect(() => {
-    if (!connected || Platform.OS === 'web') return;
-    void (async () => {
-      try {
-        await fetchProducts({ skus: [PRODUCT_ID], type: 'in-app' });
-        await refreshOwned();
-      } catch (err) {
-        setProductReady(false);
-        note(
-          err instanceof Error
-            ? err.message
-            : 'Twist 21 Premium could not be loaded from the App Store.'
-        );
-      }
-    })();
-  }, [connected, fetchProducts, refreshOwned]);
-
-  useEffect(() => {
-    const item = products.find((product) => product.id === PRODUCT_ID);
-    if (!item) return;
-    setProductReady(true);
-    if (item.displayPrice) setPrice(item.displayPrice);
-  }, [products]);
-
-  const purchase = useCallback(async (): Promise<PurchaseResult> => {
-    note(null);
-    if (Platform.OS === 'web' || !connected || !productReady) {
-      return { outcome: 'unavailable', message: null };
-    }
-    return new Promise((resolve) => {
-      pending.current = resolve;
-      void requestPurchase({
-        request: {
-          apple: { sku: PRODUCT_ID },
-          google: { skus: [PRODUCT_ID] },
-        },
-        type: 'in-app',
-      }).catch((err: unknown) => {
-        if (isUserCancelledError(err)) {
-          settle('cancelled');
-          return;
-        }
-        note(err instanceof Error ? err.message : 'Purchase failed. Please try again.');
-        settle('failed');
-      });
-    });
-  }, [connected, note, productReady, requestPurchase, settle]);
-
-  const restore = useCallback(async (): Promise<boolean> => {
-    note(null);
-    if (Platform.OS === 'web' || !connected) {
-      throw new Error('The App Store could not be reached. Please try again in a moment.');
-    }
-    await restorePurchases();
-    const purchases = await getAvailablePurchases();
-    if (!purchases.some(ownsPremium)) return false;
-    await grant();
-    return true;
-  }, [connected, grant, restorePurchases]);
-
-  return { owned, price, productReady, lastError, purchase, restore };
+export async function restore(): Promise<void> {
+  if (!configured) return;
+  await Purchases.restorePurchases();
 }
