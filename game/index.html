@@ -231,16 +231,53 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     mem[key] = val; return null;
   }
   function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  function yesterday() { var d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function yesterday() { var d = new Date(); d.setDate(d.getDate() - 1); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 
   var SAVE = {
     bank: START_CHIPS, owned: { felt: ['emerald'], back: ['classic'], dealer: ['dee'] }, eq: { felt: 'emerald', back: 'classic', dealer: 'dee' },
     boot: 100, stats: { matches: 0, wins: 0, rounds: 0, roundWins: 0, streak: 0, best: 0, earned: 0 }, daily: { last: '', streak: 0 }, onboarded: false
   };
-  function loadSave() {
-    try { var raw = store('twist21.save'); if (raw) { var o = JSON.parse(raw); for (var k in o) if (o.hasOwnProperty(k)) SAVE[k] = o[k]; } } catch (e) { /* fresh */ }
+  SAVE.rev = 0;
+  function count(v) { v = Math.floor(Number(v)); return isFinite(v) && v > 0 ? v : 0; }
+  // Turns a stored save into a complete, valid one. Old or damaged saves must never break the game or wipe the bank.
+  function readSave(raw) {
+    var o;
+    try { o = JSON.parse(raw); } catch (e) { return null; }
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+    var out = { bank: o.bank == null || !isFinite(Number(o.bank)) ? START_CHIPS : count(o.bank), owned: {}, eq: {}, stats: {}, rev: count(o.rev), onboarded: !!o.onboarded };
+    ['felt', 'back', 'dealer'].forEach(function (kind) {
+      var ids = CATALOG[kind].map(function (x) { return x.id; });
+      var have = o.owned && Array.isArray(o.owned[kind]) ? o.owned[kind].filter(function (id) { return ids.indexOf(id) >= 0; }) : [];
+      if (have.indexOf(ids[0]) < 0) have.unshift(ids[0]);
+      out.owned[kind] = have;
+      out.eq[kind] = o.eq && have.indexOf(o.eq[kind]) >= 0 ? o.eq[kind] : ids[0];
+    });
+    ['matches', 'wins', 'rounds', 'roundWins', 'streak', 'best', 'earned'].forEach(function (k) { out.stats[k] = count(o.stats && o.stats[k]); });
+    out.boot = TABLES.indexOf(Number(o.boot)) >= 0 ? Number(o.boot) : (o.boot === 0 ? 0 : 100);
+    out.daily = { last: o.daily && typeof o.daily.last === 'string' ? o.daily.last : '', streak: count(o.daily && o.daily.streak) };
+    return out;
   }
-  function persist() { store('twist21.save', JSON.stringify(SAVE)); }
+  function applySave(o) { for (var k in o) if (o.hasOwnProperty(k)) SAVE[k] = o[k]; }
+  // The save lives in the WebView and is mirrored by the app (AsyncStorage). The copy with the higher rev wins.
+  function loadSave() {
+    var a = null, b = null;
+    try { var raw = store('twist21.save'); if (raw) a = readSave(raw); } catch (e) { /* fresh */ }
+    try { if (typeof window !== 'undefined' && typeof window.__T21_SAVE__ === 'string') b = readSave(window.__T21_SAVE__); } catch (e) { /* none */ }
+    var best = a && b ? (b.rev > a.rev ? b : a) : (a || b);
+    if (best) applySave(best);
+  }
+  function persist() {
+    SAVE.rev = count(SAVE.rev) + 1;
+    var json = JSON.stringify(SAVE);
+    store('twist21.save', json);
+    if (inApp()) toApp('save', { data: json });
+  }
+  // The app calls this after load with its copy, in case the copy could not be injected before the game started.
+  function hydrate(raw) {
+    var o = typeof raw === 'string' ? readSave(raw) : null;
+    if (!o || o.rev <= count(SAVE.rev)) return false;
+    applySave(o); applyLook(); render(); return true;
+  }
   function gain(n, why) {
     SAVE.bank += n; if (n > 0 && why !== 'buy') SAVE.stats.earned += n; persist();
     if (hasDom) { $('#bankn').textContent = SAVE.bank.toLocaleString('en-US'); }
@@ -658,7 +695,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
 
 
   // ---------- state additions ----------
-  S.say = ''; S.screen = null; S.stake = 0; S.potWon = 0; S.oddsOn = false; S.offers = {}; S.storeReady = false; S.onb = 0; S.reward = null;
+  S.say = ''; S.screen = null; S.stake = 0; S.potWon = 0; S.oddsOn = false; S.offers = {}; S.storeReady = false; S.storeState = 'loading'; S.buying = ''; S.onb = 0; S.reward = null;
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function say(k) { var l = SAYS[k]; if (!l) return; S.say = pick(l); }
   function fmt(n) { return Number(n).toLocaleString('en-US'); }
@@ -835,12 +872,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
       '<p class="sub">Score (first to ' + WIN_POINTS + '): ' + score + '</p><button id="primary" class="btn gold" data-act="' + (final ? 'newmatch' : 'next') + '">' + (final ? 'New match' : 'Next round') + '</button>');
   }
   function shopHTML() {
+    var app = inApp();
     var packs = PACKS.map(function (p) {
-      var o = S.offers[p.id], price = o ? o.price : p.price;
-      return '<button class="pack" data-act="buy" data-id="' + p.id + '"><span class="amt"><span class="coin"></span>' + fmt(p.chips) + (p.tag ? '<span class="tag">' + p.tag + '</span>' : '') + '</span><span class="px">' + price + '</span></button>';
+      // Inside the app only the App Store's own localized price is ever shown.
+      var o = S.offers[p.id], price = o ? o.price : (app ? '…' : p.price), off = app && (!o || !!S.buying);
+      return '<button class="pack" data-act="buy" data-id="' + p.id + '"' + (off ? ' disabled style="opacity:.5"' : '') + '><span class="amt"><span class="coin"></span>' + fmt(p.chips) + (p.tag ? '<span class="tag">' + p.tag + '</span>' : '') + '</span><span class="px">' + price + '</span></button>';
     }).join('');
-    var note = inApp() ? (S.storeReady ? '' : '<p class="sub">Loading App Store prices…</p>') : '<p class="sub">Preview: packs add chips for free here. In the iOS app they are one-time App Store purchases.</p>';
-    return dlg('<p class="eyebrow">Chip shop</p><h2 id="ovt">Get more chips</h2><p class="sub">You have <strong class="gain">' + fmt(SAVE.bank) + '</strong> chips. Chips unlock looks and the odds meter. You never need them to play. One-time purchases, no subscription.</p>' + note +
+    var note = !app ? '<p class="sub">Preview: packs add chips for free here. In the iOS app they are one-time App Store purchases.</p>'
+      : S.buying ? '<p class="sub">Waiting for the App Store…</p>'
+      : S.storeState === 'ready' ? ''
+      : S.storeState === 'unavailable' ? '<p class="sub">Chip packs are unavailable right now. Check your connection and try again later. You can keep playing.</p>'
+      : '<p class="sub">Loading App Store prices…</p>';
+    return dlg('<p class="eyebrow">Chip shop</p><h2 id="ovt">Get more chips</h2><p class="sub">You have <strong class="gain">' + fmt(SAVE.bank) + '</strong> chips. Chips are for table boots, looks and the odds meter. Free practice needs no chips. Chips have no cash value and cannot be cashed out. One-time purchases, no subscription.</p>' + note +
       '<div class="packs">' + packs + '</div><button class="btn ghost" data-act="restore">Restore purchases</button>' + legalHTML() + '<button class="btn stand" data-act="close">Back to the table</button>');
   }
   function wardrobeHTML() {
@@ -945,17 +988,23 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     else if (a === 'onbdone') { SAVE.onboarded = true; persist(); if (dailyReady()) claimDaily(); render(); }
     else if (a === 'buy') {
       var id = el.dataset.id;
-      if (inApp()) toApp('buy', { id: id }); else { grantPack(id); }
+      if (!inApp()) { grantPack(id); }
+      else if (!S.buying && S.offers[id]) { S.buying = id; render(); toApp('buy', { id: id }); }
     }
     else if (a === 'restore') { if (inApp()) toApp('restore'); else toast('Nothing to restore in the preview'); }
   }
   function grantPack(id) {
     var p = PACKS.filter(function (x) { return x.id === id; })[0]; if (!p) return false;
-    gain(p.chips, 'buy'); toast('+' + fmt(p.chips) + ' chips added'); render(); return true;
+    S.buying = ''; gain(p.chips, 'buy'); toast('+' + fmt(p.chips) + ' chips added'); render(); return true;
   }
   // The Expo app calls these.
-  function setOffers(list) { S.offers = {}; (list || []).forEach(function (o) { S.offers[o.id] = o; }); S.storeReady = !!(list && list.length); render(); }
-  function setStoreReady(on) { S.storeReady = !!on; render(); }
+  function setOffers(list) {
+    S.offers = {}; (list || []).forEach(function (o) { if (o && o.id && o.price) S.offers[o.id] = o; });
+    S.storeReady = Object.keys(S.offers).length > 0; S.storeState = S.storeReady ? 'ready' : 'unavailable'; render();
+  }
+  function setStoreReady(on) { S.storeReady = !!on; S.storeState = on ? 'ready' : 'unavailable'; render(); }
+  // The app calls this when a purchase attempt ends, whatever the outcome, so the shop unlocks again.
+  function buyDone() { S.buying = ''; render(); }
   function notify(msg) { toast(String(msg)); }
 
   if (hasDom) {
@@ -965,7 +1014,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     initMatch();
   }
 
-  var api = { S: S, SAVE: SAVE, PACKS: PACKS, CATALOG: CATALOG, REWARD: REWARD, grantPack: grantPack, setOffers: setOffers, setStoreReady: setStoreReady, notify: notify, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, ORDER: ORDER, WIN_POINTS: WIN_POINTS, render: render, buyItem: buyItem, claimDaily: claimDaily, dailyReady: dailyReady, loadSave: loadSave };
+  var api = { S: S, SAVE: SAVE, PACKS: PACKS, CATALOG: CATALOG, REWARD: REWARD, grantPack: grantPack, setOffers: setOffers, setStoreReady: setStoreReady, buyDone: buyDone, hydrate: hydrate, readSave: readSave, shopHTML: shopHTML, onClick: onClick, notify: notify, initMatch: initMatch, beginRound: beginRound, nextRound: nextRound, total: total, ACTIONS: ACTIONS, ORDER: ORDER, WIN_POINTS: WIN_POINTS, render: render, buyItem: buyItem, claimDaily: claimDaily, dailyReady: dailyReady, loadSave: loadSave };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else if (typeof window !== 'undefined') window.T21 = api;
 })();
