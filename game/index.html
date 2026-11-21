@@ -188,9 +188,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
   var NAMES = ['You', 'Ava', 'Rex'];
   var ORDER = ['skip', 'swap', 'force', 'trim', 'shield', 'lower', 'raise', 'peek', 'reverse'];
 
-  // ---- economy: chips are a reward and cosmetics currency, never a stake ----
+  // ---- economy: pick a table; each player puts the boot in, the match winner takes the pot. Practice is always free. ----
   var START_CHIPS = 10000;
   var ODDS_COST = 50;
+  var TABLES = [100, 1000, 10000, 100000];
+  var SEATS = 3;
   var REWARD = { round: 100, exact: 100, match: 500, played: 50 };
   var PACKS = [
     { id: 'twist21_chips_12k', chips: 12000, price: '$0.99', tag: '' },
@@ -233,7 +235,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
 
   var SAVE = {
     bank: START_CHIPS, owned: { felt: ['emerald'], back: ['classic'], dealer: ['dee'] }, eq: { felt: 'emerald', back: 'classic', dealer: 'dee' },
-    stats: { matches: 0, wins: 0, rounds: 0, roundWins: 0, streak: 0, best: 0, earned: 0 }, daily: { last: '', streak: 0 }, onboarded: false
+    boot: 100, stats: { matches: 0, wins: 0, rounds: 0, roundWins: 0, streak: 0, best: 0, earned: 0 }, daily: { last: '', streak: 0 }, onboarded: false
   };
   function loadSave() {
     try { var raw = store('twist21.save'); if (raw) { var o = JSON.parse(raw); for (var k in o) if (o.hasOwnProperty(k)) SAVE[k] = o[k]; } } catch (e) { /* fresh */ }
@@ -656,7 +658,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
 
 
   // ---------- state additions ----------
-  S.say = ''; S.screen = null; S.oddsOn = false; S.offers = {}; S.storeReady = false; S.onb = 0; S.reward = null;
+  S.say = ''; S.screen = null; S.stake = 0; S.potWon = 0; S.oddsOn = false; S.offers = {}; S.storeReady = false; S.onb = 0; S.reward = null;
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function say(k) { var l = SAYS[k]; if (!l) return; S.say = pick(l); }
   function fmt(n) { return Number(n).toLocaleString('en-US'); }
@@ -675,8 +677,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     gain(n);
     if (winner && winner.human && pts === 2) say('exact'); else if (S.players[0].bust) say('bust'); else if (winner) say(winner.human ? 'win' : 'lose');
   }
+  function takeBoot() {
+    var b = SAVE.boot | 0; S.stake = 0; S.potWon = 0;
+    if (b <= 0) return;
+    if (SAVE.bank < b) { SAVE.boot = 0; persist(); toast('Not enough chips for that table. Playing free practice.'); return; }
+    gain(-b); S.stake = b;
+  }
   function awardMatch() {
     SAVE.stats.matches++;
+    if (S.stake > 0 && S.champ && S.champ.human) { S.potWon = S.stake * SEATS; gain(S.potWon); }
     if (S.champ && S.champ.human) { SAVE.stats.wins++; SAVE.stats.streak++; SAVE.stats.best = Math.max(SAVE.stats.best, SAVE.stats.streak); gain(REWARD.match); S.reward.match = REWARD.match; }
     else SAVE.stats.streak = 0;
     persist();
@@ -806,7 +815,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
   }
   function homeHTML() {
     var d = dailyReady();
-    return dlg('<p class="eyebrow">Blackjack with action cards</p><h2 id="ovt">Twist 21</h2><p class="sub">You against Ava and Rex. First to ' + WIN_POINTS + ' points.</p>' +
+    return dlg('<p class="eyebrow">Blackjack with action cards</p><h2 id="ovt">Twist 21</h2><p class="sub">You against Ava and Rex. First to ' + WIN_POINTS + ' points.</p><p class="sub"><strong class="gain">' + tableLine() + '</strong></p><button class="btn ghost" data-act="table">Choose table</button>' +
       (d ? '<button class="btn ghost" data-act="daily">Claim daily bonus · +' + fmt(dailyAmount().amount) + '</button>' : '') +
       '<button id="primary" class="btn gold" data-act="start">Deal me in</button>' +
       '<div class="menu"><button class="btn ghost" data-act="wardrobe">Wardrobe</button><button class="btn ghost" data-act="rulesopen">How to play</button></div>' + legalHTML());
@@ -819,7 +828,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
       return '<tr><th scope="row">' + r.p.name + '</th><td>' + r.p.cards.map(function (c) { return c.v; }).join(' · ') + '</td><td class="num">' + r.total + '</td><td>' + res + '</td></tr>';
     }).join('');
     var score = S.players.map(function (p) { return p.name + ' ' + p.points; }).join(' · ');
-    var rw = S.reward ? '<p class="gain">+' + fmt(S.reward.chips + (S.reward.match || 0)) + ' chips earned' + (S.reward.match ? ' (match bonus +' + S.reward.match + ')' : '') + '</p>' : '';
+    var pot = final && S.stake > 0 ? (S.potWon > 0 ? '<p class="gain">Pot won: +' + fmt(S.potWon) + ' chips (boot ' + fmt(S.stake) + ')</p>' : '<p class="sub">Boot lost: -' + fmt(S.stake) + ' chips</p>') : '';
+    var rw = pot + (S.reward ? '<p class="gain">+' + fmt(S.reward.chips + (S.reward.match || 0)) + ' chips earned' + (S.reward.match ? ' (match bonus +' + S.reward.match + ')' : '') + '</p>' : '');
     return dlg('<p class="eyebrow">Round ' + S.round + ' · target ' + R.target + '</p><h2 id="ovt">' + head + '</h2><p>' + R.msg + '</p>' + rw +
       '<table><thead><tr><th>Player</th><th>Cards</th><th class="num">Total</th><th>Result</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       '<p class="sub">Score (first to ' + WIN_POINTS + '): ' + score + '</p><button id="primary" class="btn gold" data-act="' + (final ? 'newmatch' : 'next') + '">' + (final ? 'New match' : 'Next round') + '</button>');
@@ -843,13 +853,22 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     return dlg('<p class="eyebrow">Wardrobe</p><h2 id="ovt">Make the table yours</h2><p class="sub">Chips: <strong class="gain">' + fmt(SAVE.bank) + '</strong></p>' + sect('felt', 'Table felt') + sect('back', 'Card backs') + sect('dealer', 'Dealer') +
       '<button class="btn ghost" data-act="shop">Get chips</button><button class="btn stand" data-act="close">Back</button>');
   }
+  function tableHTML() {
+    var rows = TABLES.map(function (b) {
+      var ok = SAVE.bank >= b, on = SAVE.boot === b;
+      return '<button class="wi' + (on ? ' on' : '') + '" data-act="settable" data-b="' + b + '"' + (ok ? '' : ' style="opacity:.45"') + '><span class="coin"></span>' + fmt(b) + '<small>Pot ' + fmt(b * SEATS) + (on ? ' · In use' : ok ? '' : ' · Need more chips') + '</small></button>';
+    }).join('');
+    return dlg('<p class="eyebrow">Table</p><h2 id="ovt">Choose your boot</h2><p class="sub">Boot is what each player puts in at the start of a match. Win the match and you take the whole pot (3 boots). You have <strong class="gain">' + fmt(SAVE.bank) + '</strong> chips. Chips have no cash value.</p>' +
+      '<div class="wgrid">' + rows + '</div><button class="btn ghost" data-act="settable" data-b="0">' + (SAVE.boot === 0 ? 'Free practice (in use)' : 'Free practice, no boot') + '</button><button class="btn ghost" data-act="shop">Get chips</button><button class="btn stand" data-act="close">Back</button>');
+  }
+  function tableLine() { return SAVE.boot > 0 ? 'Table: ' + fmt(SAVE.boot) + ' boot · pot ' + fmt(SAVE.boot * SEATS) : 'Table: free practice'; }
   function statsHTML() {
     var s = SAVE.stats;
     function r(a, b) { return '<tr><th scope="row">' + a + '</th><td class="num">' + b + '</td></tr>'; }
     return dlg('<p class="eyebrow">Your record</p><h2 id="ovt">Stats</h2><table><tbody>' + r('Matches played', s.matches) + r('Matches won', s.wins) + r('Win streak (best)', s.streak + ' (' + s.best + ')') + r('Rounds played', s.rounds) + r('Rounds won', s.roundWins) + r('Chips earned playing', fmt(s.earned)) + '</tbody></table><button class="btn stand" data-act="close">Back</button>');
   }
   function menuHTML() {
-    return dlg('<p class="eyebrow">Menu</p><h2 id="ovt">Twist 21</h2><div class="menu"><button class="btn ghost" data-act="shop">Chip shop</button><button class="btn ghost" data-act="wardrobe">Wardrobe</button><button class="btn ghost" data-act="stats">Stats</button><button class="btn ghost" data-act="rulesopen">How to play</button>' +
+    return dlg('<p class="eyebrow">Menu</p><h2 id="ovt">Twist 21</h2><div class="menu"><button class="btn ghost" data-act="table">Table · ' + (SAVE.boot > 0 ? fmt(SAVE.boot) + ' boot' : 'practice') + '</button><button class="btn ghost" data-act="shop">Chip shop</button><button class="btn ghost" data-act="wardrobe">Wardrobe</button><button class="btn ghost" data-act="stats">Stats</button><button class="btn ghost" data-act="rulesopen">How to play</button>' +
       (dailyReady() ? '<button class="btn gold" data-act="daily">Daily bonus · +' + fmt(dailyAmount().amount) + '</button>' : '') + '</div>' + legalHTML() + '<button class="btn stand" data-act="close">Back to the table</button>');
   }
   function rulesHTML() { return dlg('<p class="eyebrow">How to play</p><h2 id="ovt">Twist 21 rules</h2>' + rulesBody() + legalHTML() + '<button id="primary" class="btn stand" data-act="close">Back</button>'); }
@@ -858,6 +877,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     if (S.screen === 'shop') return shopHTML();
     if (S.screen === 'wardrobe') return wardrobeHTML();
     if (S.screen === 'stats') return statsHTML();
+    if (S.screen === 'table') return tableHTML();
     if (S.screen === 'menu') return menuHTML();
     if (S.screen === 'rules') return rulesHTML();
     if (!SAVE.onboarded) return onboardingHTML();
@@ -907,14 +927,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     else if (a === 'hit') { humanHit(); }
     else if (a === 'stand') { humanStand(); }
     else if (a === 'odds') { useOdds(); render(); }
-    else if (a === 'start') { say('start'); beginRound(); }
+    else if (a === 'start') { takeBoot(); say('start'); beginRound(); }
     else if (a === 'next') { say('start'); nextRound(); }
-    else if (a === 'newmatch') { say('start'); initMatch(); beginRound(); }
+    else if (a === 'newmatch') { initMatch(); takeBoot(); say('start'); beginRound(); }
     else if (a === 'menu') { S.screen = 'menu'; render(); }
     else if (a === 'rulesopen') { S.screen = 'rules'; render(); }
     else if (a === 'shop') { S.screen = 'shop'; render(); }
     else if (a === 'wardrobe') { S.screen = 'wardrobe'; render(); }
     else if (a === 'stats') { S.screen = 'stats'; render(); }
+    else if (a === 'table') { S.screen = 'table'; render(); }
+    else if (a === 'settable') { var v = +el.dataset.b; if (v === 0 || SAVE.bank >= v) { SAVE.boot = v; persist(); S.screen = null; toast(v ? 'Table set: ' + fmt(v) + ' boot' : 'Free practice table'); } else toast('Not enough chips for that table yet.'); render(); }
     else if (a === 'close') { S.screen = null; render(); }
     else if (a === 'daily') { claimDaily(); render(); }
     else if (a === 'item') { buyItem(el.dataset.k, el.dataset.id); render(); }

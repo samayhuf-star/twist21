@@ -11,7 +11,7 @@
     "ios": {
       "bundleIdentifier": "com.samay.twist21",
       "supportsTablet": false,
-      "buildNumber": "9",
+      "buildNumber": "10",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
