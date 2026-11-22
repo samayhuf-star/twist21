@@ -24,7 +24,7 @@ async function packages(): Promise<PurchasesPackage[]> {
   return o?.availablePackages ?? [];
 }
 
-/** Localized prices for the chip packs, for the in-game shop. */
+/** The chip packs the App Store currently offers. The shop only opens the paywall once this is non-empty. */
 export async function loadOffers(): Promise<Offer[]> {
   if (!configured) return [];
   const list = await packages();
@@ -33,41 +33,34 @@ export async function loadOffers(): Promise<Offer[]> {
     .map((p) => ({ id: p.product.identifier, price: p.product.priceString }));
 }
 
-export type BuyResult =
-  | { ok: true; id: string }
-  | { ok: false; cancelled: boolean; message?: string };
-
-export async function buyPack(id: string): Promise<BuyResult> {
-  if (!configured) return { ok: false, cancelled: false, message: 'Purchases are not available in this build.' };
-  try {
-    const pkg = (await packages()).find((p) => p.product.identifier === id);
-    if (!pkg) return { ok: false, cancelled: false, message: 'That chip pack is not available right now.' };
-    await Purchases.purchasePackage(pkg);
-    return { ok: true, id };
-  } catch (e: any) {
-    if (e?.userCancelled) return { ok: false, cancelled: true };
-    return { ok: false, cancelled: false, message: e?.message ?? 'Purchase failed. Please try again.' };
+async function chipTransactionIds(): Promise<Map<string, string>> {
+  const info = await Purchases.getCustomerInfo();
+  const out = new Map<string, string>();
+  for (const tx of info.nonSubscriptionTransactions) {
+    if (CHIP_PACKS[tx.productIdentifier]) out.set(tx.transactionIdentifier, tx.productIdentifier);
   }
+  return out;
 }
 
-/** RevenueCat's own paywall for the chip offering. Purchases made inside it are reported back by id. */
-export async function showChipPaywall(onPurchased: (id: string) => void): Promise<void> {
-  if (!configured) return;
+/**
+ * RevenueCat's own paywall for the chip offering. Chip packs are consumables, so each purchase is granted
+ * once: every chip transaction that exists after the paywall closes and did not exist before it opened is
+ * reported back by product id. Returns false when there was nothing to show.
+ */
+export async function showChipPaywall(onPurchased: (id: string) => void): Promise<boolean> {
+  if (!configured) return false;
   const offerings = await Purchases.getOfferings();
   const offering = offerings.all[OFFERING_ID] ?? offerings.current;
-  if (!offering) return;
-  const r = await RevenueCatUI.presentPaywall({
-    offering,
-    // consumable purchases: grant by the product that was bought
-  } as any);
-  if (r === PAYWALL_RESULT.PURCHASED) {
-    const info = await Purchases.getCustomerInfo();
-    // newest non-subscription transaction is the pack just bought
-    const tx = [...info.nonSubscriptionTransactions].sort(
-      (a, b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()
-    )[0];
-    if (tx && CHIP_PACKS[tx.productIdentifier]) onPurchased(tx.productIdentifier);
-  }
+  if (!offering || !offering.availablePackages.length) return false;
+  const before = await chipTransactionIds();
+  const result = await RevenueCatUI.presentPaywall({ offering });
+  if (result === PAYWALL_RESULT.NOT_PRESENTED || result === PAYWALL_RESULT.ERROR) return false;
+  // Compare on every close, not only on PURCHASED, so a pack that was paid for is never left ungranted.
+  const after = await chipTransactionIds();
+  after.forEach((productId, txId) => {
+    if (!before.has(txId)) onPurchased(productId);
+  });
+  return true;
 }
 
 export async function restore(): Promise<void> {

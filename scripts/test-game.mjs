@@ -100,22 +100,26 @@ await test('the newer of the WebView save and the native copy wins, and every sa
   assert.equal(JSON.parse(last.data).bank, 12111);
   assert.equal(JSON.parse(f.ls['twist21.save']).bank, 12111);
 });
-await test('shop never shows a made-up price inside the app', async () => {
+await test('in the app the shop opens the RevenueCat paywall, once, and never shows a made-up price', async () => {
   const f = fakeWindow(null, null); const T = load(f.win);
   if (!T.shopHTML) throw new Error('shopHTML not exported');
   T.initMatch();
   assert.ok(!/\$\d/.test(T.shopHTML()), 'placeholder $ price shown before the store answered');
   T.setStoreReady(false);
   assert.ok(/unavailable/i.test(T.shopHTML()) && !/\$\d/.test(T.shopHTML()));
+  const opens = () => f.posted.filter((m) => m.type === 'paywall').length;
+  const tap = (act, id) => T.onClick({ target: { closest: () => ({ dataset: { act, id } }) } });
+  tap('paywall');
+  assert.equal(opens(), 0, 'paywall must not open before the store is ready');
   T.setOffers([{ id: 'twist21_chips_12k', price: '₹99' }]);
-  assert.ok(T.shopHTML().includes('₹99') && !/\$\d/.test(T.shopHTML()));
-  // a second tap while a purchase is open must not start another one
-  const buys = () => f.posted.filter((m) => m.type === 'buy').length;
-  const tap = (id) => T.onClick({ target: { closest: () => ({ dataset: { act: 'buy', id } }) } });
-  tap('twist21_chips_12k'); tap('twist21_chips_12k'); tap('twist21_chips_50k');
-  assert.equal(buys(), 1, 'only one purchase request, and none for a pack without a store price');
-  T.buyDone(); tap('twist21_chips_12k');
-  assert.equal(buys(), 2);
+  assert.ok(/data-act="paywall">/.test(T.shopHTML()) && !/\$\d/.test(T.shopHTML()) && !/data-act="buy"/.test(T.shopHTML()));
+  tap('paywall'); tap('paywall');
+  assert.equal(opens(), 1, 'a second tap while the paywall is open must not open another');
+  assert.ok(/data-act="paywall" disabled/.test(T.shopHTML()));
+  const bank = T.SAVE.bank; tap('buy', 'twist21_chips_600k');
+  assert.equal(T.SAVE.bank, bank, 'in the app, chips are only granted by the native side');
+  T.buyDone(); tap('paywall');
+  assert.equal(opens(), 2);
 });
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

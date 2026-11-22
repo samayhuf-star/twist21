@@ -8,6 +8,6 @@ Chips and tables: chips are virtual game currency with no cash value. They canno
 
 In-app purchases: five consumable chip packs (twist21_chips_12k, _50k, _100k, _250k, _600k) bought through Apple In-App Purchase via RevenueCat. Restore Purchases is in the chip shop. No subscription, no trial, no external payment links.
 
-How to test: 1) Open the app, tap Deal me in. 2) Menu (top right) > Table to choose a boot. 3) Tap the chip balance (top left) to open the chip shop; buy a pack with a Sandbox Apple ID; chips are added immediately. 4) Terms (Apple Standard EULA), Privacy and Support links are on the shop and menu screens.
+How to test: 1) Open the app, tap Deal me in. 2) Menu (top right) > Table to choose a boot. 3) Tap the chip balance (top left) to open the chip shop, then tap See chip packs to open the purchase screen; buy a pack with a Sandbox Apple ID; chips are added immediately. 4) Terms (Apple Standard EULA), Privacy and Support links are on the shop and menu screens.
 
 External services: Apple StoreKit and RevenueCat (purchase handling). The game itself plays offline. Support: samayhuf@gmail.com (Samay Vashsht).

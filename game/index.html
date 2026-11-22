@@ -873,16 +873,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
   }
   function shopHTML() {
     var app = inApp();
-    var packs = PACKS.map(function (p) {
-      // Inside the app only the App Store's own localized price is ever shown.
-      var o = S.offers[p.id], price = o ? o.price : (app ? '…' : p.price), off = app && (!o || !!S.buying);
-      return '<button class="pack" data-act="buy" data-id="' + p.id + '"' + (off ? ' disabled style="opacity:.5"' : '') + '><span class="amt"><span class="coin"></span>' + fmt(p.chips) + (p.tag ? '<span class="tag">' + p.tag + '</span>' : '') + '</span><span class="px">' + price + '</span></button>';
+    // In the app, chip packs are sold on RevenueCat's paywall, which shows the App Store's own prices.
+    var ready = S.storeState === 'ready' && !S.buying;
+    var packs = app ? '<button id="primary" class="btn gold" data-act="paywall"' + (ready ? '' : ' disabled style="opacity:.5"') + '>See chip packs</button>' : PACKS.map(function (p) {
+      return '<button class="pack" data-act="buy" data-id="' + p.id + '"><span class="amt"><span class="coin"></span>' + fmt(p.chips) + (p.tag ? '<span class="tag">' + p.tag + '</span>' : '') + '</span><span class="px">' + p.price + '</span></button>';
     }).join('');
     var note = !app ? '<p class="sub">Preview: packs add chips for free here. In the iOS app they are one-time App Store purchases.</p>'
       : S.buying ? '<p class="sub">Waiting for the App Store…</p>'
       : S.storeState === 'ready' ? ''
       : S.storeState === 'unavailable' ? '<p class="sub">Chip packs are unavailable right now. Check your connection and try again later. You can keep playing.</p>'
-      : '<p class="sub">Loading App Store prices…</p>';
+      : '<p class="sub">Connecting to the App Store…</p>';
     return dlg('<p class="eyebrow">Chip shop</p><h2 id="ovt">Get more chips</h2><p class="sub">You have <strong class="gain">' + fmt(SAVE.bank) + '</strong> chips. Chips are for table boots, looks and the odds meter. Free practice needs no chips. Chips have no cash value and cannot be cashed out. One-time purchases, no subscription.</p>' + note +
       '<div class="packs">' + packs + '</div><button class="btn ghost" data-act="restore">Restore purchases</button>' + legalHTML() + '<button class="btn stand" data-act="close">Back to the table</button>');
   }
@@ -988,8 +988,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     else if (a === 'onbdone') { SAVE.onboarded = true; persist(); if (dailyReady()) claimDaily(); render(); }
     else if (a === 'buy') {
       var id = el.dataset.id;
-      if (!inApp()) { grantPack(id); }
-      else if (!S.buying && S.offers[id]) { S.buying = id; render(); toApp('buy', { id: id }); }
+      if (!inApp()) grantPack(id);
+    }
+    else if (a === 'paywall') {
+      if (inApp() && !S.buying && S.storeState === 'ready') { S.buying = 'paywall'; render(); toApp('paywall'); }
     }
     else if (a === 'restore') { if (inApp()) toApp('restore'); else toast('Nothing to restore in the preview'); }
   }
@@ -1003,7 +1005,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-fam
     S.storeReady = Object.keys(S.offers).length > 0; S.storeState = S.storeReady ? 'ready' : 'unavailable'; render();
   }
   function setStoreReady(on) { S.storeReady = !!on; S.storeState = on ? 'ready' : 'unavailable'; render(); }
-  // The app calls this when a purchase attempt ends, whatever the outcome, so the shop unlocks again.
+  // The app calls this when the paywall closes, whatever the outcome, so the shop unlocks again.
   function buyDone() { S.buying = ''; render(); }
   function notify(msg) { toast(String(msg)); }
 

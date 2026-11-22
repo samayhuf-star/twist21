@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView as RNWebView, WebViewMessageEvent } from 'react-native-webview';
 import gameHtml from './src/gameHtml';
-import { buyPack, initPurchases, loadOffers, restore, showChipPaywall } from './src/purchases';
+import { initPurchases, loadOffers, restore, showChipPaywall } from './src/purchases';
 
 // react-native-webview 14 ships props typings that collapse to `never` under React 19 types.
 const WebView = RNWebView as unknown as React.ComponentType<any>;
@@ -49,7 +49,7 @@ function Game() {
   }, [loaded]);
 
   const onMessage = async (e: WebViewMessageEvent) => {
-    let msg: { type?: string; url?: string; id?: string; data?: string };
+    let msg: { type?: string; url?: string; data?: string };
     try {
       msg = JSON.parse(e.nativeEvent.data);
     } catch {
@@ -63,24 +63,17 @@ function Game() {
       AsyncStorage.setItem(SAVE_KEY, msg.data).catch(() => {});
       return;
     }
-    if (msg.type === 'buy' && typeof msg.id === 'string') {
-      if (buying.current) return; // one purchase at a time, a double tap must not charge twice
+    if (msg.type === 'paywall') {
+      if (buying.current) return; // one paywall at a time, a double tap must not open two
       buying.current = true;
       try {
-        const r = await buyPack(msg.id);
-        if (r.ok) grant(r.id);
-        else if (!r.cancelled) Alert.alert('Purchase failed', r.message ?? 'Please try again.');
+        const shown = await showChipPaywall(grant);
+        if (!shown) Alert.alert('Chip packs', 'Chip packs are unavailable right now. Please try again later.');
+      } catch (err) {
+        Alert.alert('Chip packs', err instanceof Error ? err.message : 'Please try again.');
       } finally {
         buying.current = false;
         run('window.T21 && window.T21.buyDone()');
-      }
-      return;
-    }
-    if (msg.type === 'paywall') {
-      try {
-        await showChipPaywall(grant);
-      } catch (err) {
-        Alert.alert('Chip packs', err instanceof Error ? err.message : 'Please try again.');
       }
       return;
     }
