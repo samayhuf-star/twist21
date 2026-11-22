@@ -56,7 +56,9 @@
     "extra": {
       "eas": {
         "projectId": "e6c67df9-7554-4765-94ef-9a3847b58e39"
-      }
-    }
+      },
+      "privacyPolicyUrl": "https://samayhuf-star.github.io/app-legal/twist21/privacy/"
+    },
+    "description": "Twist 21 is blackjack with action cards. Free to play, with optional chip packs."
   }
 }
