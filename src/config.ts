@@ -1,17 +1,14 @@
-// The only product this version sells. It already exists in App Store Connect.
-export const PRODUCT_ID = 'twist21_premium';
-
 export const PRIVACY_URL = 'https://samayhuf-star.github.io/app-legal/twist21/privacy/';
 export const TERMS_URL = 'https://samayhuf-star.github.io/app-legal/twist21/terms/';
 export const SUPPORT_URL = 'https://samayhuf-star.github.io/app-legal/twist21/support/';
 
-// One-time non-consumable. The paywall shows StoreKit's localized price when the product loads.
-// A non-consumable cannot include a free trial, so this version does not offer one.
-export const PRICING = {
-  lifetimePrice: 39.99,
-  productId: PRODUCT_ID,
+// Consumable chip packs. Product ids match App Store Connect and RevenueCat.
+export const CHIP_PACKS: Record<string, number> = {
+  twist21_chips_12k: 12000,
+  twist21_chips_50k: 50000,
+  twist21_chips_100k: 100000,
+  twist21_chips_250k: 250000,
+  twist21_chips_600k: 600000,
 };
 
-export function lifetimePriceLabel(): string {
-  return `$${PRICING.lifetimePrice.toFixed(2)}`;
-}
+export const OFFERING_ID = 'chips';

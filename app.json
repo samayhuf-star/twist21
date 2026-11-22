@@ -3,15 +3,15 @@
     "name": "Twist 21",
     "slug": "twist21",
     "scheme": "twist21",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#100e26",
+    "backgroundColor": "#0b2a1c",
     "ios": {
       "bundleIdentifier": "com.samay.twist21",
       "supportsTablet": false,
-      "buildNumber": "6",
+      "buildNumber": "11",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -50,8 +50,7 @@
           "imageWidth": 200
         }
       ],
-      "expo-status-bar",
-      "expo-iap"
+      "expo-status-bar"
     ],
     "owner": "krosz",
     "extra": {

@@ -1,29 +1,13 @@
-# App Review notes — Twist 21 (Guideline 2.1)
+# App Review notes — Twist 21 v1.1.0 (DRAFT, not submitted)
 
-Paste the block below into App Review Information. No demo account exists. Do not invent one.
+Twist 21 is a solo card game (com.samay.twist21). No account or login. Nothing is locked behind sign-in.
 
----
+Concept: get close to a target (usually 21) without going over, against two on-device opponents, Ava and Rex. First to 5 points wins the match. On your turn you may play one action card, then Hit or Stand.
 
-Twist 21 is a solo card game (bundle com.samay.twist21, version 1.0.0). There is no account and no login. Nothing is locked behind a sign-in.
+Chips and tables: chips are virtual game currency with no cash value. They cannot be withdrawn, sold, transferred or exchanged for money, goods or prizes. The user starts with 10,000 free chips and a daily bonus. Menu > Table lets the user pick a boot of 100, 1,000, 10,000 or 100,000 chips; each player puts the boot in and the match winner takes the pot. Free practice (no boot) is always available. All gameplay and action cards are free. This is why the age rating is 17+ (simulated gambling).
 
-Concept: get close to a target (usually 21) without going over, against two on-device opponents, Ava and Rex. First to 5 points wins. On your turn you may play one action card, then Hit or Stand. Your first card is face-down to the opponents. Some action cards change the target to 18 or 24.
+In-app purchases: five consumable chip packs (twist21_chips_12k, _50k, _100k, _250k, _600k) bought through Apple In-App Purchase via RevenueCat. Restore Purchases is in the chip shop. No subscription, no trial, no external payment links.
 
-Business model: free with 3 matches a day and 5 action cards (Skip, Peek, Trim, Shield, Reverse). Twist 21 Premium is a one-time non-consumable, product ID twist21_premium, display name Twist 21 Premium, US $39.99. It is not a subscription and it has no trial. Premium unlocks Swap, Force Hit, Target 18, Target 24, unlimited matches, and the bust-chance meter. Payment is Apple In-App Purchase (StoreKit). There is no other way to pay inside the iOS app.
+How to test: 1) Open the app, tap Deal me in. 2) Menu (top right) > Table to choose a boot. 3) Tap the chip balance (top left) to open the chip shop, then tap See chip packs to open the purchase screen; buy a pack with a Sandbox Apple ID; chips are added immediately. 4) Terms (Apple Standard EULA), Privacy and Support links are on the shop and menu screens.
 
-How to play:
-1. Open the app. On the intro, tap Deal me in. You do not sign in.
-2. Play a turn: tap an action card if you want one, then tap Hit or Stand.
-3. Rules stay on the Rules button. That screen also links to Terms of Use (Apple Standard EULA), the Privacy Policy, and Support. Those links open in the browser and do not require a purchase.
-
-How to test the in-app purchase (Sandbox Apple ID; the app itself has no login):
-1. Tap Go Premium. The paywall appears before the Apple payment sheet.
-2. Confirm it shows: the name Twist 21 Premium, the full price, the words one-time / does not renew, the list of what Premium unlocks, Restore purchases, Terms of Use (Apple Standard EULA), and Privacy Policy.
-3. Tap Unlock and complete the Sandbox purchase. Premium action cards, unlimited matches, and the bust-chance meter unlock immediately. The button changes to Premium unlocked. Force-quit and reopen: Premium is still unlocked.
-4. Delete the app, reinstall, tap Go Premium, then Restore purchases. Premium returns without paying again.
-5. Play 3 free matches in one day only if you want to see the daily-limit paywall. It is the same screen.
-
-External services the reviewer will reach: Apple StoreKit only. The game itself is bundled in the app and plays with no network. Support contact: samayhuf@gmail.com (Samay Vashsht).
-
-Devices and OS tested: not recorded yet. This line must name the physical iPhone model and iOS version from the TestFlight pass, and note the iPad compatibility-mode check, before submission. iPad is not a target (iPhone only).
-
----
+External services: Apple StoreKit and RevenueCat (purchase handling). The game itself plays offline. Support: samayhuf@gmail.com (Samay Vashsht).
