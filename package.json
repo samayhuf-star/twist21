@@ -23,7 +23,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "build:html": "node scripts/build-html.mjs"
+    "build:html": "node scripts/build-html.mjs",
+    "test": "node scripts/test-game.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "private": true
 }

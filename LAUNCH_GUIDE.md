@@ -1,5 +1,7 @@
 # Twist 21: Launch Guide (iOS + Android)
 
+> **Out of date (v1.0.0).** This guide describes the old one-time Premium unlock sold through expo-iap. v1.1.0 sells consumable chip packs through RevenueCat; see `store/listing.md` and `store/review-notes.md` for the current model.
+
 Model: free with 3 matches/day and 5 of 9 action cards; **Twist 21 Premium** one-time purchase (US $39.99, product `twist21_premium`) unlocks everything. No subscription and no free trial.
 Stack: Expo (React Native) + a WebView running the bundled game page + StoreKit via expo-iap. Bundle ID / package: `com.samay.twist21`. Expo owner: `krosz` (same as Lulla). iOS build number is local (`app.json` `ios.buildNumber`, currently 5).
 
