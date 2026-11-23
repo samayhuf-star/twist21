@@ -593,6 +593,7 @@ export default function Game() {
 
           <Seat p={me} i={0} />
 
+          {S.pending ? null : (
           <View style={styles.hand} accessibilityLabel="Your action cards">
             {!me.actions.length ? <Text style={styles.empty}>No action cards. Drawing one counts as your hit.</Text> : null}
             {me.actions.map((a) => {
@@ -607,6 +608,7 @@ export default function Game() {
               );
             })}
           </View>
+          )}
 
           {S.pending ? (
             <View style={styles.chooser} accessibilityLabel="Choose a target">
@@ -624,15 +626,17 @@ export default function Game() {
             </View>
           ) : null}
 
-          <View style={styles.controls}>
-            <Btn kind="gold" flex label="Hit" disabled={!on} onPress={() => E.act('hit')} />
-            <Btn kind="outline" flex label="Stand" disabled={!on} onPress={() => E.act('stand')} />
-            <Pressable accessibilityRole="button" accessibilityLabel={`Odds meter, ${E.ODDS_COST} chips`} disabled={!(on && !S.oddsOn)} style={[styles.oddsBtn, !(on && !S.oddsOn) && { opacity: 0.4 }]} onPress={() => E.act('odds')}>
-              <Text style={styles.oddsBtnText}>Odds · {E.ODDS_COST}</Text>
-            </Pressable>
-          </View>
-          {odds ? <Text style={styles.odds}>{odds}</Text> : null}
         </ScrollView>
+        <View style={styles.bar}>
+          <View style={styles.controls}>
+              <Btn kind="gold" flex label="Hit" disabled={!on} onPress={() => E.act('hit')} />
+              <Btn kind="outline" flex label="Stand" disabled={!on} onPress={() => E.act('stand')} />
+              <Pressable accessibilityRole="button" accessibilityLabel={`Odds meter, ${E.ODDS_COST} chips`} disabled={!(on && !S.oddsOn)} style={[styles.oddsBtn, !(on && !S.oddsOn) && { opacity: 0.4 }]} onPress={() => E.act('odds')}>
+                <Text style={styles.oddsBtnText}>Odds · {E.ODDS_COST}</Text>
+              </Pressable>
+            </View>
+            {odds ? <Text style={styles.odds}>{odds}</Text> : null}
+        </View>
       </View>
       {overlay}
       <Toast />
@@ -709,6 +713,7 @@ const styles = StyleSheet.create({
   pickGhost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   pickText: { color: C.paperInk, fontWeight: '800' },
   controls: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  bar: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 6, gap: 4 },
   oddsBtn: { backgroundColor: C.glass, borderWidth: 1, borderColor: C.gold2, borderRadius: 999, paddingVertical: 12, paddingHorizontal: 10, minHeight: 44, justifyContent: 'center' },
   oddsBtnText: { color: C.gold, fontWeight: '800', fontSize: 12 },
   odds: { color: C.muted, fontSize: 12 },
