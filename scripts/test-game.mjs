@@ -1,24 +1,16 @@
 // Headless checks for the game rules and chip economy. Run: npm test
-// Loads the <script> from game/index.html in Node (no DOM) and plays full matches with bots.
+// Imports the rules engine the app ships (src/engine.ts) and plays full matches with bots.
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 
-const html = readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
-const src = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
-
-function load(win) {
-  const mod = { exports: {} };
-  new Function('module', 'window', 'document', src)(mod, win, undefined);
-  return mod.exports;
-}
+const load = async () => import('../src/engine.ts?fresh=' + Math.random());
 let failed = 0;
 async function test(name, fn) {
   try { await fn(); console.log('ok   ' + name); } catch (e) { failed++; console.log('FAIL ' + name + '\n     ' + (e && e.message)); }
 }
 
 await test('200 bot matches terminate with a valid champion and sane totals', async () => {
-  const T = load(undefined);
+  const T = await load();
   T.S.fast = true; T.S.autoHuman = true;
   for (let m = 0; m < 200; m++) {
     T.initMatch();
@@ -38,8 +30,29 @@ await test('200 bot matches terminate with a valid champion and sane totals', as
   assert.ok(Number.isFinite(T.SAVE.bank) && T.SAVE.bank >= 0, 'bank is a non-negative number');
 });
 
+await test('a human turn: action card, target pick, then hit or stand', async () => {
+  const T = await load();
+  T.S.fast = true;
+  T.initMatch();
+  T.S.players[0].actions = [{ id: 9001, t: 'a', k: 'peek' }];
+  T.S.cur = 0;
+  const done = T.beginRound();
+  await new Promise((r) => setTimeout(r, 20));
+  // round 1 starts with the human
+  assert.equal(T.S.humanTurn, true);
+  T.act('card', 'peek');
+  assert.deepEqual(T.S.pending, { k: 'peek' });
+  T.act('target', 1);
+  assert.equal(T.S.acted, true);
+  assert.ok(T.S.players[0].peeked.has(1));
+  T.act('stand');
+  T.S.autoHuman = true;
+  await done;
+  assert.ok(T.S.phase === 'roundEnd' || T.S.phase === 'matchEnd');
+});
+
 await test('every chip pack id grants its chips; unknown ids grant nothing', async () => {
-  const T = load(undefined); T.initMatch();
+  const T = await load(); T.initMatch();
   for (const p of T.PACKS) {
     const before = T.SAVE.bank;
     assert.equal(T.grantPack(p.id), true);
@@ -51,75 +64,63 @@ await test('every chip pack id grants its chips; unknown ids grant nothing', asy
 });
 
 await test('pack ids and chip amounts match src/config.ts', async () => {
-  const T = load(undefined);
+  const T = await load();
   const cfg = readFileSync(new URL('../src/config.ts', import.meta.url), 'utf8');
   const fromCfg = Object.fromEntries([...cfg.matchAll(/(twist21_chips_\w+):\s*(\d+)/g)].map((m) => [m[1], +m[2]]));
   assert.deepEqual(Object.fromEntries(T.PACKS.map((p) => [p.id, p.chips])), fromCfg);
 });
 
-await test('src/gameHtml.ts is in sync with game/index.html', async () => {
-  const require = createRequire(import.meta.url);
-  const gen = readFileSync(new URL('../src/gameHtml.ts', import.meta.url), 'utf8');
-  assert.ok(gen.includes(JSON.stringify(html)), 'run: npm run build:html');
-  void require;
+await test('the engine never states a price: prices come only from the App Store', async () => {
+  const src = readFileSync(new URL('../src/engine.ts', import.meta.url), 'utf8');
+  assert.equal(/\$\d/.test(src), false);
 });
 
-// ---- save handling (functions added by the audit fixes; skipped if absent) ----
-function fakeWindow(saved, native) {
-  const ls = {}; if (saved != null) ls['twist21.save'] = saved;
-  const posted = [];
-  const win = { localStorage: { getItem: (k) => (k in ls ? ls[k] : null), setItem: (k, v) => { ls[k] = String(v); } }, ReactNativeWebView: { postMessage: (m) => posted.push(JSON.parse(m)) } };
-  if (native != null) win.__T21_SAVE__ = native;
-  return { win, ls, posted };
-}
-await test('old or damaged saves load without breaking the wardrobe, stats or bank', async () => {
-  const T = load(undefined);
-  if (!T.readSave) throw new Error('readSave not exported');
-  const cases = ['{"bank":"abc"}', '{"bank":5000,"owned":{"felt":["emerald"]},"stats":{"matches":3}}', '{"eq":{"felt":"nope"}}', 'not json', '[]', '{"bank":-50,"boot":777,"daily":null}'];
-  for (const raw of cases) {
-    const s = T.readSave(raw);
-    if (!s) continue;
-    assert.ok(Number.isFinite(s.bank) && s.bank >= 0, raw);
-    for (const k of ['felt', 'back', 'dealer']) { assert.ok(Array.isArray(s.owned[k]) && s.owned[k].length, raw); assert.ok(s.owned[k].includes(s.eq[k]), raw); }
-    for (const k of ['matches', 'wins', 'rounds', 'roundWins', 'streak', 'best', 'earned']) assert.ok(Number.isFinite(s.stats[k]), raw + ' stats.' + k);
-    assert.ok([0, 100, 1000, 10000, 100000].includes(s.boot), raw);
-    assert.equal(typeof s.daily.last, 'string');
+await test('the app has no web view: screens are native', async () => {
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal('react-native-webview' in pkg.dependencies, false);
+  for (const f of ['../App.tsx', '../src/Game.tsx']) {
+    assert.equal(/webview/i.test(readFileSync(new URL(f, import.meta.url), 'utf8')), false, f);
   }
 });
-await test('the newer of the WebView save and the native copy wins, and every save is sent to the app', async () => {
-  const a = JSON.stringify({ bank: 111, rev: 5 }), b = JSON.stringify({ bank: 999, rev: 9 });
-  let f = fakeWindow(a, b); let T = load(f.win); T.loadSave();
-  assert.equal(T.SAVE.bank, 999);
-  f = fakeWindow(b, a); T = load(f.win); T.loadSave();
-  assert.equal(T.SAVE.bank, 999);
-  f = fakeWindow(null, a); T = load(f.win); T.loadSave();
-  assert.equal(T.SAVE.bank, 111);
-  T.initMatch(); T.grantPack('twist21_chips_12k');
-  const last = f.posted.filter((m) => m.type === 'save').pop();
-  assert.ok(last, 'save message posted');
-  assert.equal(JSON.parse(last.data).bank, 12111);
-  assert.equal(JSON.parse(f.ls['twist21.save']).bank, 12111);
+
+await test('old or damaged saves load without breaking the wardrobe, stats or bank', async () => {
+  const T = await load();
+  assert.equal(T.readSave('not json'), null);
+  assert.equal(T.readSave('[]'), null);
+  const a = T.readSave(JSON.stringify({ bank: 'x', owned: { felt: ['nope', 'violet'] }, eq: { felt: 'violet', back: 'zzz' }, stats: { wins: -4 }, boot: 7 }));
+  assert.equal(a.bank, 10000);
+  assert.deepEqual(a.owned.felt, ['emerald', 'violet']);
+  assert.equal(a.eq.felt, 'violet');
+  assert.equal(a.eq.back, 'classic');
+  assert.equal(a.stats.wins, 0);
+  assert.equal(a.boot, 100);
 });
-await test('in the app the shop opens the RevenueCat paywall, once, and never shows a made-up price', async () => {
-  const f = fakeWindow(null, null); const T = load(f.win);
-  if (!T.shopHTML) throw new Error('shopHTML not exported');
+
+await test('saves written by earlier versions hydrate, only when newer, and every change is saved', async () => {
+  const T = await load();
+  const writes = [];
+  T.setSaveHook((json) => writes.push(json));
   T.initMatch();
-  assert.ok(!/\$\d/.test(T.shopHTML()), 'placeholder $ price shown before the store answered');
-  T.setStoreReady(false);
-  assert.ok(/unavailable/i.test(T.shopHTML()) && !/\$\d/.test(T.shopHTML()));
-  const opens = () => f.posted.filter((m) => m.type === 'paywall').length;
-  const tap = (act, id) => T.onClick({ target: { closest: () => ({ dataset: { act, id } }) } });
-  tap('paywall');
-  assert.equal(opens(), 0, 'paywall must not open before the store is ready');
-  T.setOffers([{ id: 'twist21_chips_12k', price: '₹99' }]);
-  assert.ok(/data-act="paywall">/.test(T.shopHTML()) && !/\$\d/.test(T.shopHTML()) && !/data-act="buy"/.test(T.shopHTML()));
-  tap('paywall'); tap('paywall');
-  assert.equal(opens(), 1, 'a second tap while the paywall is open must not open another');
-  assert.ok(/data-act="paywall" disabled/.test(T.shopHTML()));
-  const bank = T.SAVE.bank; tap('buy', 'twist21_chips_600k');
-  assert.equal(T.SAVE.bank, bank, 'in the app, chips are only granted by the native side');
-  T.buyDone(); tap('paywall');
-  assert.equal(opens(), 2);
+  assert.equal(T.hydrate(JSON.stringify({ bank: 77777, rev: 12, onboarded: true })), true);
+  assert.equal(T.SAVE.bank, 77777);
+  assert.equal(T.hydrate(JSON.stringify({ bank: 1, rev: 3 })), false);
+  assert.equal(T.SAVE.bank, 77777);
+  T.grantPack('twist21_chips_12k');
+  assert.equal(JSON.parse(writes.at(-1)).bank, 89777);
+  assert.equal(JSON.parse(writes.at(-1)).rev, 13);
+});
+
+await test('table boots: the boot is taken at the start and the pot is three boots', async () => {
+  const T = await load();
+  T.S.fast = true; T.S.autoHuman = true;
+  T.initMatch();
+  T.act('settable', 1000);
+  const before = T.SAVE.bank;
+  T.act('start');
+  assert.equal(T.S.stake, 1000);
+  assert.ok(T.SAVE.bank <= before - 1000 + 1);
+  T.act('settable', 100000);
+  assert.equal(T.SAVE.boot, 1000, 'cannot pick a table you cannot afford');
 });
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');
