@@ -3,10 +3,10 @@
 > **Out of date (v1.0.0).** This guide describes the old one-time Premium unlock sold through expo-iap. v1.1.0 sells consumable chip packs through RevenueCat; see `store/listing.md` and `store/review-notes.md` for the current model.
 
 Model: free with 3 matches/day and 5 of 9 action cards; **Twist 21 Premium** one-time purchase (US $39.99, product `twist21_premium`) unlocks everything. No subscription and no free trial.
-Stack: Expo (React Native) + a WebView running the bundled game page + StoreKit via expo-iap. Bundle ID / package: `com.samay.twist21`. Expo owner: `krosz` (same as Lulla). iOS build number is local (`app.json` `ios.buildNumber`, currently 5).
+Stack: Expo (React Native) with native screens (`src/Game.tsx`) over the rules engine (`src/engine.ts`) + RevenueCat for chip packs. Bundle ID / package: `com.samay.twist21`. Expo owner: `krosz` (same as Lulla). iOS build number is local (`app.json` `ios.buildNumber`, currently 5).
 
 ## How it fits together
-- `game/index.html` is the whole game. `npm run build:html` embeds it into `src/gameHtml.ts`.
+- `src/engine.ts` holds the rules and chip economy; `src/Game.tsx` draws them natively. `game/index.html` is only the browser preview and is not in the app.
 - The paywall lives in the game page. In the app, its Unlock button messages the native side, which runs the StoreKit purchase (`src/purchases.ts`) and pushes the result back with `window.T21.setPremium(true)` and the store's real price with `window.T21.setPrice(...)`. The game HTML is bundled; the app does not load it from the network.
 - The unlock-code box is hidden inside the app (store rules); it exists only on the web version.
 

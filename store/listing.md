@@ -55,11 +55,11 @@ Support: https://samayhuf-star.github.io/app-legal/twist21/support/
 ## In-app purchases (consumable, all must exist in ASC and RevenueCat offering "chips")
 | Product ID | Chips | Price |
 |---|---|---|
-| twist21_chips_12k | 12,000 | $0.99 |
-| twist21_chips_50k | 50,000 | $2.99 |
-| twist21_chips_100k | 100,000 | $4.99 |
-| twist21_chips_250k | 250,000 | $9.99 |
-| twist21_chips_600k | 600,000 | $19.99 |
+| twist21_chips_12k | 12,000 | $1.99 |
+| twist21_chips_50k | 50,000 | $4.99 |
+| twist21_chips_100k | 100,000 | $9.99 |
+| twist21_chips_250k | 250,000 | $19.99 |
+| twist21_chips_600k | 600,000 | $49.99 |
 Review screenshot: paywall/shop screen. Retire twist21_premium (not referenced by this build).
 
 ## Screenshots (real captures, 1290x2796, no alpha)

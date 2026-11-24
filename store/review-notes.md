@@ -10,4 +10,6 @@ In-app purchases: five consumable chip packs (twist21_chips_12k, _50k, _100k, _2
 
 How to test: 1) Open the app, tap Deal me in. 2) Menu (top right) > Table to choose a boot. 3) Tap the chip balance (top left) to open the chip shop, then tap See chip packs to open the purchase screen; buy a pack with a Sandbox Apple ID; chips are added immediately. 4) Terms (Apple Standard EULA), Privacy and Support links are on the shop and menu screens.
 
+Built with native React Native screens (no web view, no remote content); the whole game is in the binary.
+
 External services: Apple StoreKit and RevenueCat (purchase handling). The game itself plays offline. Support: samayhuf@gmail.com (Samay Vashsht).
